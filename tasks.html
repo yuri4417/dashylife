@@ -8,35 +8,29 @@
       <title>Tasks - DashyLife</title>
     </head>
     <body>
-      <header>
-        <aside>
-          <nav>
-            <ul class="side-bar">
-                <li><a href="./index.html">Home</a></li>
-                <li><a href="./tasks.html">Tasks</a></li>
-                <li><a href="">Finances</a></li>
-                <li class="down-buttom"><a href="">Settings</a></li>
-            </ul>
-          </nav>
+      <div class="layout">
+
+        <aside class="side-bar">
+          <a href="./index.html">Home</a>
+          <a href="./tasks.html">Tasks</a>
+          <a href="#">Finances</a>
+          <a class="down-buttom" href="#">Settings</a>
         </aside>
-      </header>
-      <nav>
-        <div class="task-add">
-          <button class="add-btn">
-            <ion-icon name="add-outline"></ion-icon>
-            Add a new Task
-          </button>
-          
-          <div class="submenu">
-            <form action="/addtask" method="post">
+
+        <main class="content">
+
+          <div class="task-add">
+            <button class="add-btn">+ Add Task</button>
+
+            <form class="add-menu">
               <input type="text" name="Title" placeholder="Task title">
-              <textarea name="Description" rows="5" cols="40" placeholder="Add a description for your task."></textarea>
-              <input type="date" name="Data"   placeholder="Data da tarefa">
-              <input type="submit" value="Save Task">
+              <textarea name="Description" placeholder="Descrição"></textarea>
+              <input type="date" name="Data">
+              <input type="submit" value="Salvar">
             </form>
           </div>
-        </div>
-      </nav>
+        </main>
+      </div>
       <script src="./js/scripts.js"></script>
       <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
       <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>

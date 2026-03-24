@@ -60,23 +60,30 @@ body {
   background-color: #1A1D22;
   margin: 0;
   font-family: 'Montserrat' ,Helvetica, sans-serif;
-  display: flex;
-  justify-content: center;
-  height: 100vh;
 }
 
 .side-bar {
+  width: 250px;
+  min-height: 100vh;
+  background-color: #333;
   display: flex;
   flex-direction: column;
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 25vh;
-  background-color: #333;
   padding-top: 20px;
-
 }
+
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+}
+
+
+
 .side-bar a {
   display: block;
   color: white;
@@ -99,16 +106,9 @@ body {
 
 
 .task-add {
-  list-style: none;
-  display: block;
-  /* background-color: purple; */
-  
-  margin-top: 5vh;
-  margin-left: 25vh;
-  width: 100vh;
-  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
 }
-
 .add-btn {
   color: oklch(51.4% 0.222 16.935);
   border-radius: 10px;
@@ -118,7 +118,8 @@ body {
   font-size: 24px;
   font-weight: bolder;
 
-  width: 100vh;
+  width: 100%;
+  max-width: 800px;
   height: 6vh;
 
   transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
@@ -170,7 +171,7 @@ input[type="submit"]:hover {
 
 
 
-.submenu {
+.add-menu {
   display: none;
   list-style: none;
   margin-top: 10px;
@@ -178,9 +179,25 @@ input[type="submit"]:hover {
   height: 40vh;
   /* background-color: brown; */
   align-items: center;
+
 }
 
-.submenu.active {
+.add-menu.active {
   display: flex;
   
+}
+
+
+@media (max-width: 768px) {
+
+  .layout {
+    flex-direction: column;
+  }
+
+  .side-bar {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+
 }
