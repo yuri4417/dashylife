@@ -173,9 +173,9 @@ function App() {
   ];
 
   return (
-    <div className="min-h-screen flex bg-bg">
+    <div className="h-screen flex bg-bg overflow-hidden">
       <aside
-        className={`flex flex-col bg-surface border-r border-border-subtle transition-all duration-200 ${
+        className={`flex flex-col flex-shrink-0 bg-surface border-r border-border-subtle transition-all duration-200 ${
           sidebarCollapsed ? 'w-16' : 'w-60'
         }`}
       >
@@ -219,8 +219,8 @@ function App() {
         </nav>
       </aside>
 
-        <main className="flex-1 flex flex-col min-w-0">
-        <div className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <div className="p-6">
           {activeSection === 'home' && (
             <div className="max-w-4xl mx-auto space-y-6">
               {settings.todolist.enabled && (
