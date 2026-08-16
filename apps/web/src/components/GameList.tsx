@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Game, GameStatus, GameStatusOption } from '@dashylife/shared';
 import { fetchGames, createGame, updateGame, deleteGame as apiDeleteGame, fetchSettings } from '../utils/api';
 import { formatDate } from '../utils/dateUtils';
-import { Plus, Search, Trash2, Edit3, Filter, Check, X } from 'lucide-react';
+import { Plus, Search, Trash2, Edit3, Filter, Check, X, Download } from 'lucide-react';
 
 const DEFAULT_PLATFORMS = ['EA App', 'Epic Games', 'GOG', 'Steam', 'Ubisoft Connect'];
 
@@ -253,6 +253,19 @@ export function GameList() {
     setStatusFilter((prev) => checked ? [...prev, status] : prev.filter((s) => s !== status));
   };
 
+  const handleExportFilteredJSON = () => {
+    const jsonString = JSON.stringify(filteredGames, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `gamelist-export-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (!settings.enabled) {
     return null;
   }
@@ -261,13 +274,22 @@ export function GameList() {
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-2xl font-semibold text-primary">GameList</h3>
-        <button
-          onClick={openCreateModal}
-          className="flex items-center gap-2 px-5 py-2 rounded-pill font-medium text-sm bg-action text-action-text hover:opacity-90 transition-opacity"
-        >
-          <Plus size={16} />
-          Novo Jogo
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportFilteredJSON}
+            className="flex items-center gap-2 px-3 py-2 rounded-pill text-sm font-medium text-tertiary border border-border hover:text-primary hover:border-border-subtle transition-colors"
+            title="Exportar jogos filtrados"
+          >
+            <Download size={16} />
+          </button>
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-2 px-5 py-2 rounded-pill font-medium text-sm bg-action text-action-text hover:opacity-90 transition-opacity"
+          >
+            <Plus size={16} />
+            Novo Jogo
+          </button>
+        </div>
       </div>
 
       {loading ? (

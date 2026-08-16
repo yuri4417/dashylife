@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Home, ClipboardList, Settings, Gamepad2, ChevronLeft, ChevronRight, Server, Import, Upload, FileJson, X, CheckSquare } from 'lucide-react';
-import { Game, GameListSettings, AppSettings } from '@dashylife/shared';
+import { Game, GameStatus, GameListSettings, AppSettings } from '@dashylife/shared';
 import { fetchGames, updateSettings } from './utils/api';
 import { GameList } from './components/GameList';
 import { TodoList } from './components/TodoList';
@@ -64,6 +64,14 @@ function App() {
       }
       const errors: { index: number; game: any; errors: string[] }[] = [];
       const valid: Game[] = [];
+      const validStatuses: GameStatus[] = ['nao-jogado', 'jogando', 'zerado', 'droppado'];
+      const rawStatusMap: Record<string, string> = {
+        'finished': 'zerado', 'completed': 'zerado', 'concluido': 'zerado', 'zerado': 'zerado', 'concluído': 'zerado',
+        'playing': 'jogando', 'play': 'jogando', 'ongoing': 'jogando', 'em andamento': 'jogando', 'endless': 'jogando', 'infinite': 'jogando', 'jogando': 'jogando',
+        'nao-jogado': 'nao-jogado', 'não jogado': 'nao-jogado', 'not-played': 'nao-jogado',
+        'dropped': 'droppado', 'abandoned': 'droppado', 'droppado': 'droppado', 'abandonado': 'droppado',
+        'unplayed': 'nao-jogado', 'unstarted': 'nao-jogado', 'never-played': 'nao-jogado',
+      };
       data.forEach((item: any, index: number) => {
         const itemErrors: string[] = [];
         const title = item.name || item.title;
@@ -74,15 +82,13 @@ function App() {
         if (!platform || !platform.trim()) {
           itemErrors.push('Plataforma é obrigatória');
         }
-        const statusMap: Record<string, string> = {
-          'finished': 'zerado', 'completed': 'zerado', 'concluido': 'zerado', 'zerado': 'zerado', 'concluído': 'zerado',
-          'playing': 'jogando', 'play': 'jogando', 'ongoing': 'jogando', 'em andamento': 'jogando', 'endless': 'jogando', 'infinite': 'jogando',
-          'nao-jogado': 'nao-jogado', 'não jogado': 'nao-jogado', 'not-played': 'nao-jogado',
-          'dropped': 'droppado', 'abandoned': 'droppado', 'droppado': 'droppado', 'abandonado': 'droppado',
-          'unplayed': 'nao-jogado', 'unstarted': 'nao-jogado', 'never-played': 'nao-jogado',
-        };
         const rawStatus = item.status;
-        const mappedStatus = rawStatus ? statusMap[rawStatus.toLowerCase()] : undefined;
+        let mappedStatus: GameStatus | undefined;
+        if (rawStatus && validStatuses.includes(rawStatus as GameStatus)) {
+          mappedStatus = rawStatus as GameStatus;
+        } else if (rawStatus) {
+          mappedStatus = rawStatusMap[rawStatus.toLowerCase()] as GameStatus | undefined;
+        }
         if (!mappedStatus && rawStatus) {
           itemErrors.push(`Status inválido: ${rawStatus}`);
         }
@@ -94,7 +100,7 @@ function App() {
             id: crypto.randomUUID(),
             title: title.trim(),
             platform: platform.trim(),
-            status: (mappedStatus || 'nao-jogado') as any,
+            status: (mappedStatus || 'nao-jogado') as GameStatus,
             date: item.date || today,
             description: item.description || '',
             tags: (item.tags || []).map((tag: string) => {
@@ -214,12 +220,6 @@ function App() {
       </aside>
 
         <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 px-6 flex items-center border-b border-border-subtle bg-bg">
-          <h2 className="text-xl font-semibold text-primary">
-            {menuItems.find((m) => m.id === activeSection)?.label || 'DashyLife'}
-          </h2>
-        </header>
-
         <div className="flex-1 p-6 overflow-y-auto">
           {activeSection === 'home' && (
             <div className="max-w-4xl mx-auto space-y-6">
