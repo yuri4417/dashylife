@@ -1,0 +1,22 @@
+{
+  "name": "@dashylife/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dashylife/shared": "workspace:*",
+    "@fastify/cors": "^10.0.0",
+    "better-sqlite3": "^13.0.3",
+    "fastify": "^5.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "typescript": "5.9.2"
+  }
+}

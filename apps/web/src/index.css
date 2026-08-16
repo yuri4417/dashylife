@@ -1,0 +1,68 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@theme {
+  --color-bg: #0F0F11;
+  --color-surface: #18181B;
+  --color-surface-active: #1E1E22;
+  --color-border: #262626;
+  --color-border-subtle: #1A1A1A;
+  --color-primary: #FFFFFF;
+  --color-secondary: #A3A3A3;
+  --color-tertiary: #737373;
+  --color-action: #FFFFFF;
+  --color-action-text: #0F0F11;
+  --color-accent: #6366F1;
+  --color-accent-hover: #818CF8;
+  --color-danger: #EF4444;
+  --color-warning: #F59E0B;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --radius-pill: 9999px;
+  --radius-md: 8px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-tertiary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+button {
+  cursor: pointer;
+}

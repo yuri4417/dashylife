@@ -1,0 +1,26 @@
+# API Dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/api/package.json packages/api/
+COPY packages/shared/package.json packages/shared/
+
+# Install dependencies
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
+
+# Copy source code
+COPY packages/api/src packages/api/src
+COPY packages/shared/src packages/shared/src
+
+# Build
+RUN cd packages/shared && pnpm run build
+RUN cd packages/api && pnpm run build
+
+RUN mkdir -p /app/data
+
+EXPOSE 3000
+
+CMD ["node", "packages/api/dist/index.js"]
