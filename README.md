@@ -1,17 +1,14 @@
 # DashyLife
 
-> **Personal Life Management System** — *Gerenciador de vida pessoal*
+> **Personal Life Management System**
 
 DashyLife is a personal life management application designed to unify different aspects of daily life into a single, cohesive workspace. From managing tasks and tracking games to organizing health and finances, DashyLife brings order to the chaos of everyday life.
 
 ---
 
-## Methodology: Vibe Coding
+## Methodology
 
-This project is a strictly personal project built **100% using the "vibe coding" methodology** within the **opencode** development context.
-
-Vibe coding refers to a development approach where the developer collaborates closely with AI models — describing intent, reviewing generated code, iterating rapidly, and letting the AI handle much of the implementation detail. This project serves as both a **practical tool** and a **technical experiment** in human-AI collaborative development.
-
+This project is a strictly personal project built **100% using vibe coding** within the **OpenCode** development agent.
 ---
 
 ## Project Objectives
