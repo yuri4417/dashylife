@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Home, ClipboardList, Settings, Gamepad2, ChevronLeft, ChevronRight, Server, Import, Upload, FileJson, X, CheckSquare } from 'lucide-react';
 import { Game, GameStatus, GameListSettings, AppSettings } from '@dashylife/shared';
 import { fetchGames, updateSettings } from './utils/api';
 import { GameList } from './components/GameList';
 import { TodoList } from './components/TodoList';
 import { Toggle } from './components/Toggle';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts';
 
 type SectionType = 'home' | 'todo' | 'gamelist' | 'settings';
 
@@ -482,6 +483,38 @@ function GameListHomeSummary({ loadGames }: { loadGames: () => Promise<Game[]> }
     });
   }, [loadGames]);
 
+  const statusData = useMemo(() => {
+    const statusCounts: Record<string, number> = {};
+    const statusLabels: Record<string, string> = {
+      'nao-jogado': 'Não Jogado',
+      'jogando': 'Jogando',
+      'zerado': 'Zerado',
+      'droppado': 'Droppado',
+    };
+    games.forEach((game) => {
+      statusCounts[game.status] = (statusCounts[game.status] || 0) + 1;
+    });
+    return Object.entries(statusLabels).map(([value, name]) => ({
+      name,
+      value: statusCounts[value] || 0,
+    }));
+  }, [games]);
+
+  const platformData = useMemo(() => {
+    const platformCounts: Record<string, number> = {};
+    games.forEach((game) => {
+      platformCounts[game.platform] = (platformCounts[game.platform] || 0) + 1;
+    });
+    return Object.entries(platformCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 6);
+  }, [games]);
+
+  const playingGames = useMemo(() => games.filter(g => g.status === 'jogando'), [games]);
+
+  const COLORS = ['#6366F1', '#F59E0B', '#10B981', '#EF4444', '#8B5CF6', '#06B6D4', '#F97318', '#EC4899'];
+
   if (loading) {
     return (
       <div className="bg-surface border border-border-subtle rounded-xl p-6">
@@ -494,39 +527,89 @@ function GameListHomeSummary({ loadGames }: { loadGames: () => Promise<Game[]> }
     );
   }
 
-  const playingGames = games.filter(g => g.status === 'jogando');
-  const notPlayedGames = games.filter(g => g.status === 'nao-jogado');
-  const finishedGames = games.filter(g => g.status === 'zerado');
-
   return (
     <div className="bg-surface border border-border-subtle rounded-xl p-6">
       <div className="flex items-center gap-3 mb-4">
         <Gamepad2 size={20} className="text-accent" />
         <h3 className="text-lg font-semibold text-primary">GameList - Resumo</h3>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Total na biblioteca" value={games.length} />
-        <StatCard label="Jogos em andamento" value={playingGames.length} />
-        <StatCard label="Não jogado" value={notPlayedGames.length} />
-        <StatCard label="Zerado" value={finishedGames.length} />
-      </div>
-      {playingGames.length > 0 && (
-        <div className="mt-4">
-          <h4 className="text-sm font-medium text-tertiary mb-2">Jogando agora:</h4>
-          <ul className="space-y-1 max-h-40 overflow-y-auto">
-            {playingGames.slice(0, 5).map((game) => (
-              <li key={game.id} className="flex items-center gap-2 text-sm text-primary">
-                <span className="w-2 h-2 rounded-full bg-blue-400" />
-                <span className="truncate">{game.title}</span>
-                <span className="text-xs text-tertiary whitespace-nowrap">({game.platform})</span>
-              </li>
-            ))}
-            {playingGames.length > 5 && (
-              <li className="text-xs text-tertiary">+{playingGames.length - 5} mais...</li>
-            )}
-          </ul>
+      <div className="grid gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard label="Total na biblioteca" value={games.length} />
+            <StatCard label="Jogos em andamento" value={playingGames.length} />
+            <StatCard label="Não jogado" value={games.filter(g => g.status === 'nao-jogado').length} />
+            <StatCard label="Zerado" value={games.filter(g => g.status === 'zerado').length} />
+          </div>
+          {playingGames.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium text-tertiary mb-2">Jogando agora:</h4>
+              <ul className="space-y-1 max-h-40 overflow-y-auto">
+                {playingGames.slice(0, 5).map((game) => (
+                  <li key={game.id} className="flex items-center gap-2 text-sm text-primary">
+                    <span className="w-2 h-2 rounded-full bg-blue-400" />
+                    <span className="truncate">{game.title}</span>
+                    <span className="text-xs text-tertiary whitespace-nowrap">({game.platform})</span>
+                  </li>
+                ))}
+                {playingGames.length > 5 && (
+                  <li className="text-xs text-tertiary">+{playingGames.length - 5} mais...</li>
+                )}
+              </ul>
+            </div>
+          )}
         </div>
-      )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="text-sm font-medium text-tertiary mb-3 text-center">Por Status</h4>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={statusData}
+                  innerRadius={60}
+                  outerRadius={80}
+                  dataKey="value"
+                  paddingAngle={5}
+                  stroke="none"
+                >
+                  {statusData.map((_, index) => (
+                    <Cell key={`cell-status-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#18181B', borderColor: '#262626', color: '#FFF', borderRadius: '8px' }}
+                  itemStyle={{ color: '#A3A3A3' }}
+                  wrapperStyle={{ zIndex: 100 }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div>
+            <h4 className="text-sm font-medium text-tertiary mb-3 text-center">Por Plataforma</h4>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie
+                  data={platformData}
+                  innerRadius={60}
+                  outerRadius={80}
+                  dataKey="value"
+                  paddingAngle={5}
+                  stroke="none"
+                >
+                  {platformData.map((_, index) => (
+                    <Cell key={`cell-platform-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#18181B', borderColor: '#262626', color: '#FFF', borderRadius: '8px' }}
+                  itemStyle={{ color: '#A3A3A3' }}
+                  wrapperStyle={{ zIndex: 100 }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
