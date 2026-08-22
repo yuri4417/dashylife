@@ -1,7 +1,7 @@
 services:
   api:
     build:
-      context: ..
+      context: .
       dockerfile: docker/Dockerfile.api
     ports:
       - "3000:3000"
@@ -14,7 +14,7 @@ services:
 
   web:
     build:
-      context: ..
+      context: .
       dockerfile: ./docker/Dockerfile.web
     ports:
       - "80:80"
