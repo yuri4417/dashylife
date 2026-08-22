@@ -109,7 +109,7 @@ dashylife/
 
 ```bash
 # Clone the repository
-git clone https://github.com/yuri4417/dashylife.git
+git clone https://github.com/yuri4417/dashylife
 cd dashylife
 
 # Install all dependencies across the monorepo
@@ -153,11 +153,11 @@ DashyLife can be deployed as a complete stack using Docker Compose, ideal for an
 
 ```bash
 # Build and start all services
-docker-compose up -d --build
+docker compose up -d --build
 
 # Or, from the docker directory
 cd docker
-docker-compose up -d
+docker compose up -d
 ```
 
 This deploys:
@@ -168,7 +168,7 @@ This deploys:
 To stop:
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ---
