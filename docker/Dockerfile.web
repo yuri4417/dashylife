@@ -11,6 +11,7 @@ RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 COPY apps/web/ apps/web/
 COPY packages/shared/src packages/shared/src
+COPY packages/shared/tsconfig.json packages/shared/
 
 RUN cd packages/shared && pnpm run build
 RUN cd apps/web && pnpm run build
