@@ -98,7 +98,7 @@ function App() {
         } else {
           const today = new Date().toISOString().split('T')[0];
           valid.push({
-            id: crypto.randomUUID(),
+            id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15),
             title: title.trim(),
             platform: platform.trim(),
             status: (mappedStatus || 'nao-jogado') as GameStatus,
@@ -117,8 +117,9 @@ function App() {
       setImportErrors(errors);
       setValidImports(valid);
       setShowImportReview(true);
-    } catch (err) {
-      setImportErrors([{ index: -1, game: null, errors: ['Erro ao processar arquivo JSON'] }]);
+    } catch (err: any) {
+      console.error('Erro na importação:', err);
+      setImportErrors([{ index: -1, game: null, errors: [`Erro interno: ${err.message || 'Falha ao processar arquivo JSON'}`] }]);
       setShowImportReview(true);
     }
   };
