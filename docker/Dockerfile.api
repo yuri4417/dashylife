@@ -1,7 +1,9 @@
 # API Dockerfile
 FROM node:20-alpine
 
-WORKDIR /app
+WORKDIR /app/packages/api
+CMD ["pnpm", "start"]
+
 RUN apk add --no-cache python3 make g++
 
 # Copy package files
