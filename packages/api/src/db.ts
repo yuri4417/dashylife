@@ -4,7 +4,9 @@ import { fileURLToPath } from 'url';
 import { mkdirSync } from 'fs';
 import { Todo, Repetition, Game } from '@dashylife/shared';
 
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const dataDir = process.env.NODE_ENV === 'production' 
   ? process.env.DATA_DIR || path.join(__dirname, 'data')
   : path.join(__dirname, 'data');
@@ -14,8 +16,10 @@ mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
 const db = new Database(DB_PATH);
 
-db.pragma('journal_mode = WAL');
+db.pragma('journal_mode = DELETE');
 db.pragma('foreign_keys = ON');
+
+export default db;
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS todos (
