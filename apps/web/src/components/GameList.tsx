@@ -272,7 +272,7 @@ export function GameList() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <h3 className="text-2xl font-semibold text-primary">GameList</h3>
         <div className="flex items-center gap-2">
           <button
@@ -308,7 +308,7 @@ export function GameList() {
         </div>
       ) : (
         <>
-        <div className="relative mb-6">
+        <div className="relative mb-8">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-tertiary" />
           <input
             type="text"
@@ -319,12 +319,12 @@ export function GameList() {
           />
         </div>
 
-        <div className="mb-6 bg-surface border border-border-subtle rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-3">
+        <div className="mb-8 bg-surface border border-border/50 rounded-2xl p-6">
+          <div className="flex items-center gap-2 mb-4">
             <Filter size={16} className="text-accent" />
             <span className="text-sm font-medium text-tertiary">Filtros</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-xs font-medium text-tertiary mb-2">Plataforma</label>
               <div className="flex flex-wrap gap-2">
@@ -410,9 +410,9 @@ export function GameList() {
               <tbody className="divide-y divide-border-subtle">
                 {filteredGames.map((game) => (
                   <tr key={game.id} className="hover:bg-surface-active transition-colors">
-                    <td className="py-3 px-4 text-sm text-primary font-medium">{game.title}</td>
-                    <td className="py-3 px-4 text-sm text-primary">{game.platform}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-4 px-4 text-sm text-primary font-medium">{game.title}</td>
+                    <td className="py-4 px-4 text-sm text-primary">{game.platform}</td>
+                    <td className="py-4 px-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-pill text-xs font-medium ${
                         game.status === 'jogando' ? 'bg-blue-500/20 text-blue-400' :
                         game.status === 'zerado' ? 'bg-green-500/20 text-green-400' :
@@ -422,13 +422,13 @@ export function GameList() {
                         {GAME_STATUS_OPTIONS.find(s => s.value === game.status)?.label || game.status}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-sm text-tertiary">
+                    <td className="py-4 px-4 text-sm text-tertiary">
                       {game.date ? formatDate(game.date) : '-'}
                     </td>
-                    <td className="py-3 px-4 text-sm text-tertiary max-w-xs truncate">
+                    <td className="py-4 px-4 text-sm text-tertiary max-w-xs truncate">
                       {game.description || '-'}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-4 px-4">
                       <div className="flex flex-wrap gap-1">
                         {game.tags.map((tag, idx) => (
                           <span
@@ -441,7 +441,7 @@ export function GameList() {
                         {game.tags.length === 0 && <span className="text-tertiary text-xs">-</span>}
                       </div>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openEditModal(game)}
@@ -473,11 +473,11 @@ export function GameList() {
           >
             <div
               ref={modalRef}
-              className="bg-surface border border-border-subtle rounded-xl w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+              className="bg-surface border border-border/50 rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
+              <div className="p-8">
+                <div className="flex items-center justify-between mb-8">
                   <h3 className="text-lg font-semibold text-primary">{isEditing ? 'Editar Jogo' : 'Novo Jogo'}</h3>
                   <button
                     onClick={closeModal}
@@ -487,7 +487,7 @@ export function GameList() {
                   </button>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-5">
                   <div>
                     <label className="block text-sm font-medium text-tertiary mb-1.5">Título</label>
                     <input
@@ -574,7 +574,7 @@ export function GameList() {
                   </div>
                 </div>
 
-                <div className="mt-6 flex justify-end gap-3">
+                <div className="mt-8 flex justify-end gap-3">
                   <button
                     onClick={closeModal}
                     className="px-5 py-2.5 text-sm font-medium text-tertiary hover:text-primary transition-colors rounded-pill"
@@ -628,12 +628,15 @@ export function GameListSettingsPanel({ settings, onSave, onImportClick }: { set
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-primary">Configurações do GameList</h3>
         <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={settings.enabled}
-            onChange={(e) => onSave({ ...settings, enabled: e.target.checked })}
-            className="w-5 h-5 accent-accent cursor-pointer"
-          />
+          <div className="relative flex items-center justify-center w-5 h-5">
+            <input
+              type="checkbox"
+              checked={settings.enabled}
+              onChange={(e) => onSave({ ...settings, enabled: e.target.checked })}
+              className="appearance-none w-5 h-5 border-2 border-border rounded cursor-pointer transition-colors checked:bg-accent checked:border-accent peer"
+            />
+            <Check className="w-3.5 h-3.5 text-white absolute left-0.5 top-0.5 pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+          </div>
           <span className="text-sm font-medium text-tertiary">Módulo Ativo</span>
         </label>
       </div>
@@ -644,12 +647,15 @@ export function GameListSettingsPanel({ settings, onSave, onImportClick }: { set
         <div className="space-y-2">
           {platforms.map((platform) => (
             <div key={platform.name} className="flex items-center gap-3 p-3 bg-surface border border-border-subtle rounded-lg">
-              <input
-                type="checkbox"
-                checked={platform.visible}
-                onChange={() => handleToggleVisibility(platform.name)}
-                className="w-4 h-4 accent-accent cursor-pointer"
-              />
+              <div className="relative flex items-center justify-center w-5 h-5">
+                <input
+                  type="checkbox"
+                  checked={platform.visible}
+                  onChange={() => handleToggleVisibility(platform.name)}
+                  className="appearance-none w-5 h-5 border-2 border-border rounded cursor-pointer transition-colors checked:bg-accent checked:border-accent peer"
+                />
+                <Check className="w-3.5 h-3.5 text-white absolute left-0.5 top-0.5 pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+              </div>
               <span className="flex-1 text-sm text-primary">{platform.name}</span>
               {platforms.length > 1 && (
                 <button

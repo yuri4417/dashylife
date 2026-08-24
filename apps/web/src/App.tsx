@@ -221,8 +221,8 @@ function App() {
         </nav>
       </aside>
 
-        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <div className="p-6">
+<main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <div className="p-8">
           {activeSection === 'home' && (
             <div className="max-w-4xl mx-auto space-y-6">
               {settings.todolist.enabled && (
@@ -231,15 +231,15 @@ function App() {
               {settings.gamelist.enabled && (
                 <GameListHomeSummary loadGames={loadGamesForHome} />
               )}
-              {!settings.todolist.enabled && !settings.gamelist.enabled && (
-                <div className="bg-surface border border-border-subtle rounded-xl p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Server size={20} className="text-accent" />
-                    <h3 className="text-lg font-semibold text-primary">Serviços</h3>
-                  </div>
-                  <p className="text-tertiary text-sm">Nenhum serviço ativo. Vá para a página de Configurações para ativar os módulos disponíveis.</p>
-                </div>
-              )}
+{!settings.todolist.enabled && !settings.gamelist.enabled && (
+            <div className="bg-surface border border-border/50 rounded-2xl p-8">
+              <div className="flex items-center gap-3 mb-2">
+                <Server size={20} className="text-accent" />
+                <h3 className="text-lg font-semibold text-primary">Serviços</h3>
+              </div>
+              <p className="text-tertiary text-sm">Nenhum serviço ativo. Vá para a página de Configurações para ativar os módulos disponíveis.</p>
+            </div>
+          )}
             </div>
           )}
 
@@ -254,7 +254,7 @@ function App() {
 {activeSection === 'settings' && (
               <div className="max-w-4xl mx-auto">
                 <div className="space-y-6">
-                  <div className="bg-surface border border-border-subtle rounded-xl p-6 space-y-4">
+                  <div className="bg-surface border border-border/50 rounded-2xl p-8 space-y-4">
                     <div className="flex items-center gap-3">
                       <Server size={20} className="text-accent" />
                       <h3 className="text-lg font-semibold text-primary">Serviços</h3>
@@ -276,7 +276,7 @@ function App() {
                   </div>
 
                   {settings.gamelist.enabled && (
-                    <div className="bg-surface border border-border-subtle rounded-xl p-6 space-y-6">
+                    <div className="bg-surface border border-border/50 rounded-2xl p-8 space-y-6">
                       <div className="flex items-center gap-3">
                         <Gamepad2 size={20} className="text-accent" />
                         <h3 className="text-lg font-semibold text-primary">Configurações do GameList</h3>
@@ -287,7 +287,7 @@ function App() {
                     <p className="text-xs text-tertiary mb-4">Gerencie as plataformas disponíveis. Desmarque para ocultar do menu de adição e filtros.</p>
                     <div className="space-y-2">
                       {settings.gamelist.platforms.map((platform) => (
-                        <div key={platform.name} className="flex items-center gap-3 p-3 bg-surface-active border border-border-subtle rounded-lg">
+                        <div key={platform.name} className="flex items-center gap-3 p-3 bg-surface-active border border-border/50 rounded-xl">
                           <Toggle
                             checked={platform.visible}
                             onChange={() => {
@@ -319,15 +319,15 @@ function App() {
                         value={newPlatform}
                         onChange={(e) => setNewPlatform(e.target.value)}
                          onKeyDown={(e) => {
-                           if (e.key === 'Enter') {
-                             const trimmed = newPlatform.trim();
-                             if (!trimmed) return;
-                             if (settings.gamelist.platforms.some(p => p.name.toLowerCase() === trimmed.toLowerCase())) return;
-                             const newPlatforms = [...settings.gamelist.platforms, { name: trimmed, visible: true }];
-                             updateGamelistSettings(prev => ({ ...prev, platforms: newPlatforms }));
-                             setNewPlatform('');
-                           }
-                         }}
+                          if (e.key === 'Enter') {
+                            const trimmed = newPlatform.trim();
+                            if (!trimmed) return;
+                            if (settings.gamelist.platforms.some(p => p.name.toLowerCase() === trimmed.toLowerCase())) return;
+                            const newPlatforms = [...settings.gamelist.platforms, { name: trimmed, visible: true }];
+                            updateGamelistSettings(prev => ({ ...prev, platforms: newPlatforms }));
+                            setNewPlatform('');
+                          }
+                        }}
                         placeholder="Nova plataforma..."
                         className="flex-1 px-4 py-3 text-sm bg-surface border border-border text-primary focus:outline-none focus:border-accent rounded-lg"
                       />
@@ -347,7 +347,7 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="border-t border-border-subtle pt-6">
+                  <div className="border-t border-border/50 pt-6">
                     <div className="flex items-center gap-3 mb-3">
                       <Import size={16} className="text-accent" />
                       <h4 className="text-sm font-medium text-tertiary">Importar Biblioteca</h4>
@@ -371,16 +371,16 @@ function App() {
 
       {importModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => { setImportModalOpen(false); setImportFile(null); }}>
-          <div className="bg-surface border border-border-subtle rounded-xl w-full max-w-md mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
+          <div className="bg-surface border border-border/50 rounded-2xl w-full max-w-md mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
                   <FileJson size={20} className="text-accent" />
                   <h3 className="text-lg font-semibold text-primary">Importar Biblioteca</h3>
                 </div>
                 <button onClick={() => { setImportModalOpen(false); setImportFile(null); }} className="text-tertiary hover:text-primary transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-active"><X size={18} /></button>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-tertiary mb-1.5">Arquivo JSON</label>
                   <input
@@ -402,7 +402,7 @@ function App() {
                     <span>{importFile ? importFile.name : 'Clique para selecionar o arquivo JSON'}</span>
                   </label>
                   {importFile && (
-                    <div className="mt-2 flex items-center justify-between p-2 bg-surface-active border border-border rounded-lg">
+                    <div className="mt-2 flex items-center justify-between p-2 bg-surface-active border border-border/50 rounded-xl">
                       <span className="text-sm text-primary truncate mr-2 flex items-center gap-2">
                         <FileJson size={14} className="flex-shrink-0" />
                         {importFile.name}
@@ -422,7 +422,7 @@ function App() {
                   <p className="mt-1.5 text-xs text-tertiary">Formato esperado: array de objetos com name, launcher, status, date, description, tags</p>
                 </div>
               </div>
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="flex justify-end gap-3 mt-8">
                 <button onClick={() => { setImportModalOpen(false); setImportFile(null); }} className="px-5 py-2.5 text-sm font-medium text-tertiary hover:text-primary transition-colors rounded-pill">Cancelar</button>
                 <button onClick={processImport} disabled={!importFile} className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-action-text bg-action hover:opacity-90 transition-opacity rounded-pill disabled:opacity-50"><Upload size={16} /> Processar</button>
               </div>
@@ -433,14 +433,14 @@ function App() {
 
       {showImportReview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => { setShowImportReview(false); setImportFile(null); setValidImports([]); setImportErrors([]); }}>
-          <div className="bg-surface border border-border-subtle rounded-xl w-full max-w-2xl mx-4 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
+          <div className="bg-surface border border-border/50 rounded-2xl w-full max-w-2xl mx-4 shadow-2xl max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-8">
                 <h3 className="text-lg font-semibold text-primary">Revisar Importação</h3>
                 <button onClick={() => { setShowImportReview(false); setImportFile(null); setValidImports([]); setImportErrors([]); }} className="text-tertiary hover:text-primary transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-active"><X size={18} /></button>
               </div>
               {importErrors.length > 0 && (
-                <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <div className="mb-5 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
                   <h4 className="text-sm font-medium text-red-400 mb-2">Itens com erro ({importErrors.length})</h4>
                   <ul className="space-y-2 max-h-40 overflow-y-auto">
                     {importErrors.map((err) => (
@@ -452,7 +452,7 @@ function App() {
                 </div>
               )}
               {validImports.length > 0 && (
-                <div className="mb-4 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <div className="mb-5 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
                   <h4 className="text-sm font-medium text-green-400 mb-2">Itens válidos ({validImports.length})</h4>
                   <ul className="space-y-1 max-h-40 overflow-y-auto">
                     {validImports.map((g, idx) => (
@@ -518,8 +518,8 @@ function GameListHomeSummary({ loadGames }: { loadGames: () => Promise<Game[]> }
 
   if (loading) {
     return (
-      <div className="bg-surface border border-border-subtle rounded-xl p-6">
-        <div className="flex items-center gap-3 mb-4">
+      <div className="bg-surface border border-border/50 rounded-2xl p-8">
+        <div className="flex items-center gap-3 mb-6">
           <Gamepad2 size={20} className="text-accent" />
           <h3 className="text-lg font-semibold text-primary">GameList - Resumo</h3>
         </div>
@@ -529,86 +529,84 @@ function GameListHomeSummary({ loadGames }: { loadGames: () => Promise<Game[]> }
   }
 
   return (
-    <div className="bg-surface border border-border-subtle rounded-xl p-6">
-      <div className="flex items-center gap-3 mb-4">
+    <div className="bg-surface border border-border/50 rounded-2xl p-8">
+      <div className="flex items-center gap-3 mb-6">
         <Gamepad2 size={20} className="text-accent" />
         <h3 className="text-lg font-semibold text-primary">GameList - Resumo</h3>
       </div>
-      <div className="grid gap-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <StatCard label="Total na biblioteca" value={games.length} />
-            <StatCard label="Jogos em andamento" value={playingGames.length} />
-            <StatCard label="Não jogado" value={games.filter(g => g.status === 'nao-jogado').length} />
-            <StatCard label="Zerado" value={games.filter(g => g.status === 'zerado').length} />
-          </div>
-          {playingGames.length > 0 && (
-            <div>
-              <h4 className="text-sm font-medium text-tertiary mb-2">Jogando agora:</h4>
-              <ul className="space-y-1 max-h-40 overflow-y-auto">
-                {playingGames.slice(0, 5).map((game) => (
-                  <li key={game.id} className="flex items-center gap-2 text-sm text-primary">
-                    <span className="w-2 h-2 rounded-full bg-blue-400" />
-                    <span className="truncate">{game.title}</span>
-                    <span className="text-xs text-tertiary whitespace-nowrap">({game.platform})</span>
-                  </li>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard label="Total" value={games.length} />
+        <StatCard label="Jogando" value={playingGames.length} />
+        <StatCard label="Não Jogado" value={games.filter(g => g.status === 'nao-jogado').length} />
+        <StatCard label="Zerado" value={games.filter(g => g.status === 'zerado').length} />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <h4 className="text-xs font-semibold text-tertiary uppercase tracking-wider mb-3 text-center">Por Status</h4>
+          <ResponsiveContainer width="100%" height={160}>
+            <PieChart>
+              <Pie
+                data={statusData}
+                innerRadius={50}
+                outerRadius={65}
+                dataKey="value"
+                paddingAngle={4}
+                stroke="none"
+              >
+                {statusData.map((_, index) => (
+                  <Cell key={`cell-status-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
-                {playingGames.length > 5 && (
-                  <li className="text-xs text-tertiary">+{playingGames.length - 5} mais...</li>
-                )}
-              </ul>
-            </div>
-          )}
+              </Pie>
+              <Tooltip
+                contentStyle={{ backgroundColor: '#18181B', borderColor: '#262626', color: '#FFF', borderRadius: '8px' }}
+                itemStyle={{ color: '#A3A3A3' }}
+                wrapperStyle={{ zIndex: 100 }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="text-sm font-medium text-tertiary mb-3 text-center">Por Status</h4>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  innerRadius={60}
-                  outerRadius={80}
-                  dataKey="value"
-                  paddingAngle={5}
-                  stroke="none"
-                >
-                  {statusData.map((_, index) => (
-                    <Cell key={`cell-status-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#18181B', borderColor: '#262626', color: '#FFF', borderRadius: '8px' }}
-                  itemStyle={{ color: '#A3A3A3' }}
-                  wrapperStyle={{ zIndex: 100 }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div>
-            <h4 className="text-sm font-medium text-tertiary mb-3 text-center">Por Plataforma</h4>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={platformData}
-                  innerRadius={60}
-                  outerRadius={80}
-                  dataKey="value"
-                  paddingAngle={5}
-                  stroke="none"
-                >
-                  {platformData.map((_, index) => (
-                    <Cell key={`cell-platform-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#18181B', borderColor: '#262626', color: '#FFF', borderRadius: '8px' }}
-                  itemStyle={{ color: '#A3A3A3' }}
-                  wrapperStyle={{ zIndex: 100 }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+        <div className="lg:col-span-1">
+          <h4 className="text-xs font-semibold text-tertiary uppercase tracking-wider mb-3 text-center">Por Plataforma</h4>
+          <ResponsiveContainer width="100%" height={160}>
+            <PieChart>
+              <Pie
+                data={platformData}
+                innerRadius={50}
+                outerRadius={65}
+                dataKey="value"
+                paddingAngle={4}
+                stroke="none"
+              >
+                {platformData.map((_, index) => (
+                  <Cell key={`cell-platform-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{ backgroundColor: '#18181B', borderColor: '#262626', color: '#FFF', borderRadius: '8px' }}
+                itemStyle={{ color: '#A3A3A3' }}
+                wrapperStyle={{ zIndex: 100 }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="lg:col-span-1">
+          <h4 className="text-xs font-semibold text-tertiary uppercase tracking-wider mb-3">Jogando agora</h4>
+          {playingGames.length > 0 ? (
+            <ul className="space-y-3 max-h-60 overflow-y-auto pr-2">
+              {playingGames.slice(0, 6).map((game) => (
+                <li key={game.id} className="flex items-center gap-3 p-3 bg-surface-active border border-border/50 rounded-xl transition-colors hover:border-border">
+                  <div className="w-2.5 h-2.5 rounded-full bg-blue-400 flex-shrink-0" />
+                  <span className="text-sm text-primary truncate flex-1">{game.title}</span>
+                  <span className="text-xs text-tertiary whitespace-nowrap px-2 py-0.5 bg-border/50 rounded-pill">{game.platform}</span>
+                </li>
+              ))}
+              {playingGames.length > 6 && (
+                <li className="text-xs text-tertiary text-center py-2">+{playingGames.length - 6} mais...</li>
+              )}
+            </ul>
+          ) : (
+            <p className="text-sm text-tertiary text-center py-8">Nenhum jogo em andamento</p>
+          )}
         </div>
       </div>
     </div>
@@ -651,8 +649,8 @@ function TodoListHomeSummary({ loadTodos }: { loadTodos: () => Promise<any[]> })
 
   if (loading) {
     return (
-      <div className="bg-surface border border-border-subtle rounded-xl p-6">
-        <div className="flex items-center gap-3 mb-4">
+      <div className="bg-surface border border-border/50 rounded-2xl p-8">
+        <div className="flex items-center gap-3 mb-6">
           <CheckSquare size={20} className="text-accent" />
           <h3 className="text-lg font-semibold text-primary">Tarefas - Resumo</h3>
         </div>
@@ -662,28 +660,28 @@ function TodoListHomeSummary({ loadTodos }: { loadTodos: () => Promise<any[]> })
   }
 
   return (
-    <div className="bg-surface border border-border-subtle rounded-xl p-6">
-      <div className="flex items-center gap-3 mb-4">
+    <div className="bg-surface border border-border/50 rounded-2xl p-8">
+      <div className="flex items-center gap-3 mb-6">
         <CheckSquare size={20} className="text-accent" />
         <h3 className="text-lg font-semibold text-primary">Tarefas - Resumo</h3>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <StatCard label="Total de tarefas" value={todos.length} />
-        <StatCard label="Tarefas pendentes" value={pendingTodos.length} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <StatCard label="Total" value={todos.length} />
+        <StatCard label="Pendentes" value={pendingTodos.length} />
         <StatCard label="Vencidas" value={overdueTodos.length} />
       </div>
       {upcomingTodos.length > 0 && (
-        <div className="mt-4">
-          <h4 className="text-sm font-medium text-tertiary mb-2">Próximas tarefas:</h4>
-          <ul className="space-y-1 max-h-40 overflow-y-auto">
+        <div>
+          <h4 className="text-xs font-semibold text-tertiary uppercase tracking-wider mb-3">Próximas tarefas</h4>
+          <ul className="space-y-3 max-h-40 overflow-y-auto pr-2">
             {upcomingTodos.map((todo) => {
               const label = getDueDateLabel(todo.dueDate);
               const dotColor = label === 'Hoje' ? 'bg-orange-400' : label === 'Amanhã' ? 'bg-blue-400' : 'bg-gray-400';
               return (
-                <li key={todo.id} className="flex items-center gap-2 text-sm text-primary">
-                  <span className={`w-2 h-2 rounded-full ${dotColor}`} />
-                  <span className="truncate">{todo.title}</span>
-                  <span className="text-xs text-tertiary whitespace-nowrap">({label})</span>
+                <li key={todo.id} className="flex items-center gap-3 p-3 bg-surface-active border border-border/50 rounded-xl transition-colors hover:border-border">
+                  <div className={`w-2.5 h-2.5 rounded-full ${dotColor} flex-shrink-0`} />
+                  <span className="text-sm text-primary truncate flex-1">{todo.title}</span>
+                  <span className="text-xs text-tertiary whitespace-nowrap px-2 py-0.5 bg-border/50 rounded-pill">{label}</span>
                 </li>
               );
             })}
@@ -691,7 +689,7 @@ function TodoListHomeSummary({ loadTodos }: { loadTodos: () => Promise<any[]> })
         </div>
       )}
       {upcomingTodos.length === 0 && (
-        <div className="mt-4">
+        <div className="text-center py-8">
           <p className="text-sm text-tertiary">Nenhuma tarefa programada para os próximos dias. Aproveite seu tempo livre!</p>
         </div>
       )}
@@ -701,9 +699,9 @@ function TodoListHomeSummary({ loadTodos }: { loadTodos: () => Promise<any[]> })
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="p-5 bg-surface border border-border-subtle rounded-xl">
-      <p className="text-tertiary text-xs uppercase tracking-wider mb-1.5">{label}</p>
-      <p className="text-3xl font-semibold text-primary">{value}</p>
+    <div className="p-6 bg-surface-active border border-border/50 rounded-2xl">
+      <p className="text-xs font-semibold text-tertiary uppercase tracking-wider mb-2">{label}</p>
+      <p className="text-3xl font-bold text-primary">{value}</p>
     </div>
   );
 }

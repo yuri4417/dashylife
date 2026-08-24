@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Todo, Repetition } from '@dashylife/shared';
 import { fetchTodos, createTodo, updateTodo, deleteTodo as apiDeleteTodo } from '../utils/api';
 import { getDueStatus, formatDate } from '../utils/dateUtils';
-import { Plus, Search, X, Trash2, Repeat2 } from 'lucide-react';
+import { Plus, Search, X, Trash2, Repeat2, Check } from 'lucide-react';
 
 interface ModalFormData {
   title: string;
@@ -224,7 +224,7 @@ export function TodoList() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <h3 className="text-2xl font-semibold text-primary">Tarefas</h3>
         <button
           onClick={openCreateModal}
@@ -251,7 +251,7 @@ export function TodoList() {
         </div>
       ) : (
         <>
-        <div className="relative mb-6">
+        <div className="relative mb-8">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-tertiary" />
           <input
             type="text"
@@ -269,9 +269,9 @@ export function TodoList() {
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {groupedTodos.map(({ date, todos: groupTodos }) => (
-              <div key={date} className="space-y-2">
+              <div key={date} className="space-y-3">
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-0.5 bg-border-subtle rounded-full" />
                   <span className="text-lg font-bold text-primary whitespace-nowrap px-3">
@@ -279,23 +279,27 @@ export function TodoList() {
                   </span>
                   <div className="flex-1 h-0.5 bg-border-subtle rounded-full" />
                 </div>
-                <ul className="space-y-2">
+                <ul className="space-y-3">
                   {groupTodos.map((todo) => {
                     const highlight = getTodoHighlight(todo);
                     return (
                       <li
                         key={todo.id}
-                        className={`flex items-center gap-3 px-4 py-3 bg-surface rounded-xl ${
-                          'border border-border-subtle hover:border-border'
+                        className={`flex items-center gap-4 px-5 py-4 bg-surface rounded-2xl ${
+                          'border border-border/50 hover:border-border'
                         } ${
                           highlight === 'overdue' ? 'border-l-3 border-danger' : ''
                         } ${highlight === 'due-soon' ? 'border-l-3 border-warning' : ''}`}
                       >
-                        <button
-                          onClick={() => completeTodo(todo.id)}
-                          className="w-5 h-5 accent-accent cursor-pointer flex-shrink-0 rounded border-2 border-border"
-                          aria-label="Concluir tarefa"
-                        />
+                        <div className="relative flex items-center justify-center w-5 h-5 flex-shrink-0">
+                          <input
+                            type="checkbox"
+                            className="appearance-none w-5 h-5 border-2 border-border rounded cursor-pointer transition-colors checked:bg-accent checked:border-accent peer"
+                            onChange={() => completeTodo(todo.id)}
+                            aria-label="Concluir tarefa"
+                          />
+                          <Check className="w-3.5 h-3.5 text-white absolute left-0.5 top-0.5 pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+                        </div>
                         <div
                           onClick={() => openEditModal(todo)}
                           className="flex-1 min-w-0 cursor-pointer"
@@ -354,11 +358,11 @@ export function TodoList() {
         >
           <div
             ref={modalRef}
-            className="bg-surface border border-border-subtle rounded-xl w-full max-w-md mx-4 shadow-2xl"
+            className="bg-surface border border-border/50 rounded-2xl w-full max-w-md mx-4 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
+            <div className="p-8">
+              <div className="flex items-center justify-between mb-8">
                 <h3 className="text-lg font-semibold text-primary">{isEditing ? 'Editar Tarefa' : 'Nova Tarefa'}</h3>
                 <button
                   onClick={closeModal}
@@ -368,7 +372,7 @@ export function TodoList() {
                 </button>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-tertiary mb-1.5">Título</label>
                   <input
@@ -427,17 +431,20 @@ export function TodoList() {
 
                 <div className="space-y-3">
                   <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.repetitionEnabled}
-                      onChange={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          repetitionEnabled: e.target.checked,
-                        }));
-                      }}
-                      className="w-5 h-5 accent-accent cursor-pointer"
-                    />
+                    <div className="relative flex items-center justify-center w-5 h-5">
+                      <input
+                        type="checkbox"
+                        checked={formData.repetitionEnabled}
+                        onChange={(e) => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            repetitionEnabled: e.target.checked,
+                          }));
+                        }}
+                        className="appearance-none w-5 h-5 border-2 border-border rounded cursor-pointer transition-colors checked:bg-accent checked:border-accent peer"
+                      />
+                      <Check className="w-3.5 h-3.5 text-white absolute left-0.5 top-0.5 pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" strokeWidth={3} />
+                    </div>
                     <span className="text-sm font-medium text-tertiary">Repetir tarefa</span>
                   </label>
 
@@ -470,7 +477,7 @@ export function TodoList() {
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end gap-3">
+              <div className="mt-8 flex justify-end gap-3">
                 <button
                   onClick={closeModal}
                   className="px-5 py-2.5 text-sm font-medium text-tertiary hover:text-primary transition-colors rounded-pill"
