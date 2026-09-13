@@ -22,10 +22,10 @@ function FilterChip({
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-pill text-xs font-medium border transition-colors ${
+      className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-colors ${
         active
-          ? 'bg-accent/20 text-accent border-accent/30'
-          : 'bg-transparent text-tertiary border-border hover:border-border hover:bg-surface-active'
+          ? 'border-accent/40 bg-accent/10 text-accent'
+          : 'border-border-subtle text-tertiary hover:border-border hover:bg-surface-active'
       }`}
     >
       {active && <Check size={10} className="inline mr-1" />}
@@ -42,14 +42,16 @@ export function GameFilters({
   onStatusChange,
 }: GameFiltersProps) {
   return (
-    <div className="mb-6 sm:mb-8 bg-surface border border-border-subtle rounded-2xl p-4 sm:p-6">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="mb-6 rounded-xl border border-border-subtle bg-surface p-4 sm:mb-8 sm:p-6">
+      <div className="mb-4 flex items-center gap-2">
         <Filter size={16} className="text-accent" />
         <span className="text-sm font-medium text-tertiary">Filtros</span>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <div>
-          <label className="block text-xs font-medium text-tertiary mb-2">Plataforma</label>
+          <label className="mb-2 block text-[10px] font-medium uppercase tracking-widest text-tertiary">
+            Plataforma
+          </label>
           <div className="flex flex-wrap gap-2">
             {allPlatforms.map((platform) => (
               <FilterChip
@@ -63,7 +65,9 @@ export function GameFilters({
           </div>
         </div>
         <div>
-          <label className="block text-xs font-medium text-tertiary mb-2">Status</label>
+          <label className="mb-2 block text-[10px] font-medium uppercase tracking-widest text-tertiary">
+            Status
+          </label>
           <div className="flex flex-wrap gap-2">
             {GAME_STATUS_OPTIONS.map((status) => (
               <FilterChip

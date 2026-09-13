@@ -21,7 +21,7 @@ function getDueDateLabel(dueDate?: string): string {
 function getDotColor(label: string): string {
   if (label === 'Hoje') return 'bg-orange-400';
   if (label === 'Amanhã') return 'bg-blue-400';
-  return 'bg-gray-400';
+  return 'bg-zinc-500';
 }
 
 export function TodoListHomeSummary() {
@@ -49,7 +49,7 @@ export function TodoListHomeSummary() {
     return (
       <Card>
         <SummaryTitle />
-        <p className="text-tertiary text-sm">Carregando...</p>
+        <p className="text-sm text-tertiary">Carregando...</p>
       </Card>
     );
   }
@@ -57,33 +57,33 @@ export function TodoListHomeSummary() {
   return (
     <Card>
       <SummaryTitle />
-      <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+      <div className="mb-5 grid grid-cols-3 gap-3 sm:gap-4">
         <StatCard label="Total" value={todos.length} />
         <StatCard label="Pendentes" value={pendingTodos.length} />
         <StatCard label="Vencidas" value={overdueTodos.length} />
       </div>
       {upcomingTodos.length === 0 ? (
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <p className="text-sm text-tertiary">
             Nenhuma tarefa programada para os próximos dias. Aproveite seu tempo livre!
           </p>
         </div>
       ) : (
         <div>
-          <h4 className="text-xs font-semibold text-tertiary uppercase tracking-wider mb-3">
+          <h4 className="mb-3 text-[10px] font-medium uppercase tracking-widest text-tertiary">
             Próximas tarefas
           </h4>
-          <ul className="space-y-3 max-h-40 overflow-y-auto pr-2">
+          <ul className="max-h-40 space-y-2 overflow-y-auto pr-1">
             {upcomingTodos.map((todo) => {
               const label = getDueDateLabel(todo.dueDate);
               return (
                 <li
                   key={todo.id}
-                  className="flex items-center gap-3 p-3 bg-surface-active border border-border-subtle rounded-xl transition-colors hover:border-border"
+                  className="flex items-center gap-3 rounded-lg border border-border-subtle bg-surface px-3 py-2.5 transition-colors hover:border-border"
                 >
-                  <div className={`w-2.5 h-2.5 rounded-full ${getDotColor(label)} flex-shrink-0`} />
-                  <span className="text-sm text-primary truncate flex-1 min-w-0">{todo.title}</span>
-                  <span className="text-xs text-tertiary whitespace-nowrap px-2 py-0.5 bg-border/60 rounded-pill">
+                  <span className={`h-2 w-2 flex-shrink-0 rounded-full ${getDotColor(label)}`} />
+                  <span className="min-w-0 flex-1 truncate text-sm text-primary">{todo.title}</span>
+                  <span className="flex-shrink-0 rounded-pill bg-surface-active px-2 py-0.5 text-xs text-tertiary">
                     {label}
                   </span>
                 </li>
@@ -98,9 +98,16 @@ export function TodoListHomeSummary() {
 
 function SummaryTitle() {
   return (
-    <div className="flex items-center gap-3 mb-6">
-      <CheckSquare size={20} className="text-accent" />
-      <h3 className="font-display text-lg font-semibold text-primary">Tarefas - Resumo</h3>
+    <div className="mb-5 flex items-center gap-3">
+      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-surface-active text-accent">
+        <CheckSquare size={18} />
+      </span>
+      <div className="min-w-0">
+        <h3 className="font-display text-lg font-semibold tracking-tight text-primary">Tarefas</h3>
+        <p className="truncate text-[10px] font-medium uppercase tracking-widest text-tertiary">
+          Resumo do módulo
+        </p>
+      </div>
     </div>
   );
 }

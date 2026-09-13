@@ -37,7 +37,7 @@ export function ImportModal({ file, onFileChange, onClose, onProcess }: ImportMo
       }
     >
       <div>
-        <label className="block text-sm font-medium text-tertiary mb-1.5">Arquivo JSON</label>
+        <label className="mb-1.5 block text-sm font-medium text-tertiary">Arquivo JSON</label>
         <input
           ref={fileInputRef}
           type="file"
@@ -48,23 +48,23 @@ export function ImportModal({ file, onFileChange, onClose, onProcess }: ImportMo
         />
         <label
           htmlFor="import-json-file"
-          className="flex items-center justify-center gap-2 w-full px-4 py-8 text-sm bg-surface border border-border border-dashed text-tertiary hover:text-primary hover:border-accent/30 hover:bg-surface-active cursor-pointer rounded-lg transition-colors"
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border-subtle bg-surface px-4 py-8 text-sm text-tertiary transition-colors hover:border-border hover:bg-surface-active hover:text-primary"
         >
-          <Upload size={20} />
+          <Upload size={20} className="flex-shrink-0" />
           <span className="truncate">
             {file ? file.name : 'Clique para selecionar o arquivo JSON'}
           </span>
         </label>
         {file && (
-          <div className="mt-2 flex items-center justify-between p-2 bg-surface-active border border-border/50 rounded-xl">
-            <span className="text-sm text-primary truncate mr-2 flex items-center gap-2">
-              <FileJson size={14} className="flex-shrink-0" />
-              {file.name}
+          <div className="mt-2 flex items-center justify-between rounded-lg border border-border-subtle bg-surface px-3 py-2">
+            <span className="flex min-w-0 items-center gap-2 text-sm text-primary">
+              <FileJson size={14} className="flex-shrink-0 text-tertiary" />
+              <span className="truncate">{file.name}</span>
             </span>
             <button
               type="button"
               onClick={clearFile}
-              className="text-tertiary hover:text-danger transition-colors w-6 h-6 flex items-center justify-center rounded-full hover:bg-surface-active"
+              className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-surface-active hover:text-danger"
             >
               <X size={14} />
             </button>
@@ -103,9 +103,9 @@ export function ImportReviewModal({ errors, validImports, onClose, onApply }: Im
       }
     >
       {errors.length > 0 && (
-        <div className="mb-5 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-          <h4 className="text-sm font-medium text-red-400 mb-2">Itens com erro ({errors.length})</h4>
-          <ul className="space-y-2 max-h-40 overflow-y-auto">
+        <div className="mb-5 rounded-lg border border-red-500/20 bg-red-500/5 p-4">
+          <h4 className="mb-2 text-sm font-medium text-red-400">Itens com erro ({errors.length})</h4>
+          <ul className="max-h-40 space-y-2 overflow-y-auto">
             {errors.map((err, idx) => (
               <li
                 key={err.index >= 0 ? `error-${err.index}` : `error-fallback-${idx}`}
@@ -119,11 +119,11 @@ export function ImportReviewModal({ errors, validImports, onClose, onApply }: Im
         </div>
       )}
       {validImports.length > 0 && (
-        <div className="mb-5 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
-          <h4 className="text-sm font-medium text-green-400 mb-2">
+        <div className="mb-5 rounded-lg border border-green-500/20 bg-green-500/5 p-4">
+          <h4 className="mb-2 text-sm font-medium text-green-400">
             Itens válidos ({validImports.length})
           </h4>
-          <ul className="space-y-1 max-h-40 overflow-y-auto">
+          <ul className="max-h-40 space-y-1 overflow-y-auto">
             {validImports.map((g) => (
               <li key={g.id} className="text-xs text-primary">
                 {g.title} ({g.platform}) - {g.status}

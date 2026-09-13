@@ -9,14 +9,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    'px-5 py-2.5 text-sm font-medium text-action-text bg-action hover:opacity-90 transition-opacity rounded-lg disabled:opacity-50',
+    'bg-action px-5 py-2.5 text-sm font-medium text-action-text transition-colors hover:bg-zinc-200 disabled:opacity-50',
   secondary:
-    'px-4 py-2 text-sm font-medium text-primary bg-surface border border-border rounded-lg hover:bg-surface-active transition-colors',
-  ghost:
-    'px-5 py-2.5 text-sm font-medium text-tertiary hover:text-primary transition-colors rounded-lg',
-  icon: 'text-tertiary hover:text-danger transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-active flex-shrink-0',
+    'border border-border bg-surface px-4 py-2 text-sm font-medium text-primary transition-colors hover:border-border hover:bg-surface-active',
+  ghost: 'px-5 py-2.5 text-sm font-medium text-tertiary transition-colors hover:text-primary',
+  icon: 'flex h-8 w-8 flex-shrink-0 items-center justify-center text-tertiary transition-colors hover:bg-surface-active hover:text-danger',
   retry:
-    'px-4 py-2 text-sm font-medium text-primary bg-surface border border-border rounded-lg hover:bg-surface-active transition-colors',
+    'border border-border bg-surface px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-surface-active',
 };
 
 export function Button({ variant = 'primary', className = '', children, ...rest }: ButtonProps) {
@@ -35,7 +34,7 @@ interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function ActionButton({ children, fullWidthOnMobile = true, className = '', ...rest }: ActionButtonProps) {
   return (
     <button
-      className={`flex items-center justify-center gap-2 px-5 py-2.5 sm:py-2 rounded-lg font-medium text-sm bg-action text-action-text hover:opacity-90 transition-opacity ${fullWidthOnMobile ? 'w-full sm:w-auto' : ''} ${className}`}
+      className={`flex items-center justify-center gap-2 bg-action px-5 py-2.5 text-sm font-medium text-action-text transition-colors hover:bg-zinc-200 ${fullWidthOnMobile ? 'w-full sm:w-auto' : ''} ${className}`}
       {...rest}
     >
       {children}

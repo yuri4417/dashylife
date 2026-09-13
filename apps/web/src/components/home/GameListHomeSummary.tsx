@@ -15,9 +15,9 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const TOOLTIP_STYLE = {
-  backgroundColor: '#141416',
-  borderColor: '#262629',
-  color: '#F5F5F6',
+  backgroundColor: '#131316',
+  borderColor: '#27272a',
+  color: '#fafafa',
   borderRadius: '8px',
 };
 
@@ -59,7 +59,7 @@ export function GameListHomeSummary() {
     return (
       <Card>
         <SummaryTitle />
-        <p className="text-tertiary text-sm">Carregando...</p>
+        <p className="text-sm text-tertiary">Carregando...</p>
       </Card>
     );
   }
@@ -67,39 +67,37 @@ export function GameListHomeSummary() {
   return (
     <Card>
       <SummaryTitle />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatCard label="Total" value={games.length} />
         <StatCard label="Jogando" value={playingGames.length} />
         <StatCard label="Não Jogado" value={naoJogado} />
         <StatCard label="Zerado" value={zerados} />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <ChartBlock title="Por Status" data={statusData} cellPrefix="cell-status" />
         <ChartBlock title="Por Plataforma" data={platformData} cellPrefix="cell-platform" />
-        <div className="lg:col-span-1 sm:col-span-2">
-          <h4 className="text-xs font-semibold text-tertiary uppercase tracking-wider mb-3">
+        <div className="sm:col-span-2 lg:col-span-1">
+          <h4 className="mb-3 text-[10px] font-medium uppercase tracking-widest text-tertiary">
             Jogando agora
           </h4>
           {playingGames.length === 0 ? (
-            <p className="text-sm text-tertiary text-center py-8">Nenhum jogo em andamento</p>
+            <p className="py-8 text-center text-sm text-tertiary">Nenhum jogo em andamento</p>
           ) : (
-            <ul className="space-y-3 max-h-60 overflow-y-auto pr-2">
+            <ul className="max-h-60 space-y-2 overflow-y-auto pr-1">
               {playingGames.slice(0, 6).map((game) => (
                 <li
                   key={game.id}
-                  className="flex items-center gap-3 p-3 bg-surface-active border border-border-subtle rounded-xl transition-colors hover:border-border"
+                  className="flex items-center gap-3 rounded-lg border border-border-subtle bg-surface px-3 py-2.5 transition-colors hover:border-border"
                 >
-                  <div className="w-2.5 h-2.5 rounded-full bg-blue-400 flex-shrink-0" />
-                  <span className="text-sm text-primary truncate flex-1 min-w-0">{game.title}</span>
-                  <span className="text-xs text-tertiary whitespace-nowrap px-2 py-0.5 bg-border/60 rounded-pill">
+                  <span className="h-2 w-2 flex-shrink-0 rounded-full bg-blue-400" />
+                  <span className="min-w-0 flex-1 truncate text-sm text-primary">{game.title}</span>
+                  <span className="flex-shrink-0 rounded-pill bg-surface-active px-2 py-0.5 text-xs text-tertiary">
                     {game.platform}
                   </span>
                 </li>
               ))}
               {playingGames.length > 6 && (
-                <li className="text-xs text-tertiary text-center py-2">
-                  +{playingGames.length - 6} mais...
-                </li>
+                <li className="py-2 text-center text-xs text-tertiary">+{playingGames.length - 6} mais...</li>
               )}
             </ul>
           )}
@@ -111,9 +109,16 @@ export function GameListHomeSummary() {
 
 function SummaryTitle() {
   return (
-    <div className="flex items-center gap-3 mb-6">
-      <Gamepad2 size={20} className="text-accent" />
-      <h3 className="font-display text-lg font-semibold text-primary">GameList - Resumo</h3>
+    <div className="mb-5 flex items-center gap-3">
+      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-surface-active text-accent">
+        <Gamepad2 size={18} />
+      </span>
+      <div className="min-w-0">
+        <h3 className="font-display text-lg font-semibold tracking-tight text-primary">GameList</h3>
+        <p className="truncate text-[10px] font-medium uppercase tracking-widest text-tertiary">
+          Resumo do módulo
+        </p>
+      </div>
     </div>
   );
 }
@@ -129,7 +134,7 @@ function ChartBlock({
 }) {
   return (
     <div className="lg:col-span-1">
-      <h4 className="text-xs font-semibold text-tertiary uppercase tracking-wider mb-3 text-center">
+      <h4 className="mb-3 text-center text-[10px] font-medium uppercase tracking-widest text-tertiary">
         {title}
       </h4>
       <ResponsiveContainer width="100%" height={160}>
@@ -141,7 +146,7 @@ function ChartBlock({
           </Pie>
           <Tooltip
             contentStyle={TOOLTIP_STYLE}
-            itemStyle={{ color: '#A3A3A3' }}
+            itemStyle={{ color: '#a1a1aa' }}
             wrapperStyle={{ zIndex: 100 }}
           />
         </PieChart>

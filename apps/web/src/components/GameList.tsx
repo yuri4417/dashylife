@@ -117,23 +117,22 @@ export function GameList() {
 
 function ListHeader({ onCreate, onExport }: { onCreate: () => void; onExport: () => void }) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
-      <h3 className="font-display text-xl sm:text-2xl font-semibold tracking-tight text-primary">
-        GameList
-      </h3>
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:mb-8">
+      <div>
+        <h3 className="font-display text-2xl font-semibold tracking-tight text-primary">GameList</h3>
+        <p className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-tertiary">
+          Gerencie sua biblioteca de jogos
+        </p>
+      </div>
       <div className="flex items-center gap-2">
         <button
           onClick={onExport}
-          className="flex items-center justify-center gap-2 px-3 py-2.5 sm:py-2 rounded-lg text-sm font-medium text-tertiary border border-border hover:text-primary hover:border-border-subtle transition-colors"
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-border-subtle text-tertiary transition-colors hover:border-border hover:text-primary"
           title="Exportar jogos filtrados"
         >
           <Download size={16} />
         </button>
-        <Button
-          variant="primary"
-          onClick={onCreate}
-          className="flex flex-1 sm:flex-none items-center justify-center gap-2 sm:py-2 font-medium"
-        >
+        <Button variant="primary" onClick={onCreate} className="flex items-center justify-center gap-2 px-5 py-2.5 sm:py-2">
           <Plus size={16} />
           Novo Jogo
         </Button>

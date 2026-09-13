@@ -81,7 +81,7 @@ export function GameModal({
           type="date"
           value={formData.date}
           onChange={(e) => onUpdateForm('date', e.target.value)}
-          className="w-full px-4 py-3 text-sm bg-surface border border-border text-primary focus:outline-none focus:border-accent rounded-lg"
+          className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-primary transition-colors focus:border-accent focus:outline-none"
         />
       </Field>
 

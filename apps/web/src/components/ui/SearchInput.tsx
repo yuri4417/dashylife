@@ -8,14 +8,14 @@ interface SearchInputProps {
 
 export function SearchInput({ value, onChange, placeholder }: SearchInputProps) {
   return (
-    <div className="relative mb-6 sm:mb-8">
-      <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-tertiary" />
+    <div className="relative mb-5 sm:mb-6">
+      <Search size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-tertiary" />
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-11 pr-4 py-3 text-sm bg-surface border border-border text-primary placeholder-tertiary focus:outline-none focus:border-accent rounded-lg"
+        className="w-full rounded-lg border border-border-subtle bg-surface py-3 pl-10 pr-4 text-sm text-primary placeholder:text-tertiary transition-colors focus:border-border focus:outline-none"
       />
     </div>
   );

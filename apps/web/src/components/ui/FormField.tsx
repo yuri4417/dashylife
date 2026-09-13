@@ -1,7 +1,7 @@
 import { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react';
 
 const BASE_INPUT =
-  'w-full px-4 py-3 text-sm bg-surface border text-primary placeholder-tertiary focus:outline-none focus:border-accent rounded-lg';
+  'w-full rounded-lg border bg-surface px-4 py-3 text-sm text-primary placeholder:text-tertiary transition-colors focus:border-accent focus:outline-none';
 
 interface FieldProps {
   label: string;
@@ -11,7 +11,7 @@ interface FieldProps {
 export function Field({ label, children }: FieldProps) {
   return (
     <div>
-      <label className="block text-sm font-medium text-tertiary mb-1.5">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-tertiary">{label}</label>
       {children}
     </div>
   );
@@ -53,10 +53,7 @@ interface SelectInputProps extends SelectHTMLAttributes<HTMLSelectElement> {
 
 export function SelectInput({ children, className = '', ...rest }: SelectInputProps) {
   return (
-    <select
-      className={`${BASE_INPUT} border-border ${className}`}
-      {...rest}
-    >
+    <select className={`${BASE_INPUT} border-border ${className}`} {...rest}>
       {children}
     </select>
   );

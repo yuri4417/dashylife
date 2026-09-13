@@ -70,7 +70,7 @@ export function TodoModal({
           type="date"
           value={formData.dueDate}
           onChange={(e) => onUpdateForm('dueDate', e.target.value)}
-          className="w-full px-4 py-3 text-sm bg-surface border border-border text-primary focus:outline-none focus:border-accent rounded-lg"
+          className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-primary transition-colors focus:border-accent focus:outline-none"
         />
       </Field>
 
@@ -90,7 +90,7 @@ export function TodoModal({
                 min={1}
                 value={formData.repetitionInterval}
                 onChange={(e) => onUpdateForm('repetitionInterval', e.target.value)}
-                className="w-full px-4 py-3 text-sm bg-surface border border-border text-primary focus:outline-none focus:border-accent rounded-lg"
+                className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-primary transition-colors focus:border-accent focus:outline-none"
               />
             </div>
             <div className="flex-1">

@@ -12,29 +12,26 @@ interface ModalProps {
 
 export function Modal({ title, onClose, children, footer, maxWidth = 'max-w-md', icon }: ModalProps) {
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 sm:items-center">
       <div
-        className={`bg-surface border border-border-subtle rounded-2xl w-full ${maxWidth} shadow-2xl max-h-[90dvh] overflow-y-auto`}
+        className={`w-full ${maxWidth} max-h-[90dvh] overflow-y-auto rounded-xl border border-border-subtle bg-surface`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-4 sm:p-8">
-          <div className="flex items-center justify-between mb-6 sm:mb-8">
+        <div className="p-4 sm:p-6 sm:pb-6">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {icon}
-              <h3 className="font-display text-lg font-semibold text-primary">{title}</h3>
+              <h3 className="font-display text-lg font-semibold tracking-tight text-primary">{title}</h3>
             </div>
             <button
               onClick={onClose}
-              className="text-tertiary hover:text-primary transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-active"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-surface-active hover:text-primary"
             >
-              <X size={18} />
+              <X size={16} />
             </button>
           </div>
-          <div className="space-y-5">{children}</div>
-          {footer && <div className="mt-8 flex justify-end gap-3">{footer}</div>}
+          <div className="mt-5 space-y-5">{children}</div>
+          {footer && <div className="mt-6 flex justify-end gap-3">{footer}</div>}
         </div>
       </div>
     </div>

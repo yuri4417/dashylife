@@ -2,27 +2,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 @theme {
-  --color-bg: #0A0A0B;
-  --color-surface: #141416;
-  --color-surface-active: #1C1C1F;
-  --color-border: #262629;
-  --color-border-subtle: #1D1D20;
-  --color-primary: #F5F5F6;
-  --color-secondary: #B2B2B8;
-  --color-tertiary: #80808A;
-  --color-action: #F5F5F6;
-  --color-action-text: #0A0A0B;
-  --color-accent: #E8B04D;
-  --color-accent-hover: #F2C46D;
-  --color-danger: #F0564A;
-  --color-warning: #FB923C;
+  --color-bg: #09090b;
+  --color-surface: #131316;
+  --color-surface-active: #1e1e21;
+  --color-border: #27272a;
+  --color-border-subtle: #202024;
+  --color-primary: #fafafa;
+  --color-secondary: #d4d4d8;
+  --color-tertiary: #a1a1aa;
+  --color-action: #fafafa;
+  --color-action-text: #09090b;
+  --color-accent: #e8b04d;
+  --color-accent-hover: #f2c46d;
+  --color-danger: #f87171;
+  --color-warning: #fb923c;
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-display: 'Manrope', 'Inter', system-ui, sans-serif;
   --radius-pill: 9999px;
   --radius-md: 10px;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
 }
 
@@ -38,11 +40,8 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Subtle warm depth behind the app */
 #root {
-  background:
-    radial-gradient(1100px 520px at 50% -8%, rgba(232, 176, 77, 0.07), transparent 62%),
-    var(--color-bg);
+  background: var(--color-bg);
 }
 
 * {
@@ -72,13 +71,13 @@ body {
   background: var(--color-tertiary);
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator {
+input[type='date']::-webkit-calendar-picker-indicator {
   filter: invert(0.8);
   opacity: 0.6;
   cursor: pointer;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator:hover {
+input[type='date']::-webkit-calendar-picker-indicator:hover {
   opacity: 1;
 }
 

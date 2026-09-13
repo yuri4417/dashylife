@@ -90,10 +90,13 @@ export function TodoList() {
 
 function ListHeader({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
-      <h3 className="font-display text-xl sm:text-2xl font-semibold tracking-tight text-primary">
-        Tarefas
-      </h3>
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:mb-8">
+      <div>
+        <h3 className="font-display text-2xl font-semibold tracking-tight text-primary">Tarefas</h3>
+        <p className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-tertiary">
+          Organize seus próximos passos
+        </p>
+      </div>
       <ActionButton onClick={onCreate}>
         <Plus size={16} />
         Nova Tarefa

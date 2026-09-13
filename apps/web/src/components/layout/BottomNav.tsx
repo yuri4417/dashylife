@@ -18,7 +18,7 @@ export function BottomNav({ menuItems, activeSection, onSelect }: BottomNavProps
   return (
     <nav
       aria-label="Navegação principal"
-      className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-surface/90 backdrop-blur-xl border-t border-border-subtle"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border-subtle bg-surface md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <div className="grid" style={{ gridTemplateColumns: `repeat(${menuItems.length}, minmax(0, 1fr))` }}>
@@ -29,7 +29,7 @@ export function BottomNav({ menuItems, activeSection, onSelect }: BottomNavProps
               key={item.id}
               onClick={() => onSelect(item.id)}
               aria-current={active ? 'page' : undefined}
-              className={`relative flex flex-col items-center justify-center gap-1 px-1 pt-2.5 pb-2 min-h-[60px] text-[10px] font-medium transition-colors ${
+              className={`group relative flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 pb-2 pt-2.5 text-[10px] font-medium transition-colors ${
                 active ? 'text-primary' : 'text-tertiary'
               }`}
             >
@@ -38,8 +38,10 @@ export function BottomNav({ menuItems, activeSection, onSelect }: BottomNavProps
                   active ? 'bg-accent opacity-100' : 'opacity-0'
                 }`}
               />
-              <item.Icon size={22} strokeWidth={active ? 2.25 : 2} />
-              <span className="truncate max-w-full leading-tight">{item.label}</span>
+              <span className="transition-transform duration-200 group-hover:scale-110">
+                <item.Icon size={22} strokeWidth={active ? 2.25 : 2} />
+              </span>
+              <span className="max-w-full truncate leading-tight">{item.label}</span>
             </button>
           );
         })}

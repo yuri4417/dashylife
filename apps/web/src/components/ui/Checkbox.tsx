@@ -9,17 +9,17 @@ interface CheckboxProps {
 
 export function Checkbox({ checked, onChange, label, ariaLabel }: CheckboxProps) {
   return (
-    <label className="flex items-center gap-3 cursor-pointer">
-      <span className="relative flex items-center justify-center w-5 h-5">
+    <label className="flex cursor-pointer items-center gap-3">
+      <span className="relative flex h-5 w-5 items-center justify-center">
         <input
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
           aria-label={ariaLabel ?? label}
-          className="appearance-none w-5 h-5 border-2 border-border rounded cursor-pointer transition-colors checked:bg-accent checked:border-accent peer"
+          className="peer h-5 w-5 appearance-none cursor-pointer rounded-md border-2 border-border transition-colors hover:border-tertiary checked:border-accent checked:bg-accent"
         />
         <Check
-          className="w-3.5 h-3.5 text-white absolute left-0.5 top-0.5 pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity"
+          className="pointer-events-none absolute left-0.5 top-0.5 h-3.5 w-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100"
           strokeWidth={3}
         />
       </span>

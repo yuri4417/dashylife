@@ -14,11 +14,14 @@ export function GameCards({ games, onEdit, onDelete }: GameCardsProps) {
   return (
     <div className="space-y-3 md:hidden">
       {games.map((game) => (
-        <article key={game.id} className="bg-surface border border-border-subtle rounded-2xl p-4">
+        <article
+          key={game.id}
+          className="rounded-xl border border-border-subtle bg-surface p-4 transition-colors hover:border-border"
+        >
           <div className="flex items-start gap-3">
-            <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-semibold text-primary truncate">{game.title}</h4>
-              <p className="text-xs text-tertiary mt-0.5">
+            <div className="min-w-0 flex-1">
+              <h4 className="truncate text-sm font-semibold text-primary">{game.title}</h4>
+              <p className="mt-0.5 text-xs text-tertiary">
                 {game.platform}
                 {game.date ? ` • ${formatDate(game.date)}` : ''}
               </p>
@@ -32,17 +35,17 @@ export function GameCards({ games, onEdit, onDelete }: GameCardsProps) {
               <TagList gameId={game.id} tags={game.tags} maxVisible={4} mobile />
             </div>
           )}
-          <div className="flex items-center justify-end gap-1 mt-2">
+          <div className="mt-3 flex items-center justify-end gap-1">
             <button
               onClick={() => onEdit(game)}
-              className="text-tertiary hover:text-primary transition-colors w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-active"
+              className="flex h-9 w-9 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-surface-active hover:text-primary"
               aria-label="Editar jogo"
             >
               <Edit3 size={16} />
             </button>
             <button
               onClick={() => onDelete(game.id)}
-              className="text-tertiary hover:text-danger transition-colors w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-active"
+              className="flex h-9 w-9 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-surface-active hover:text-danger"
               aria-label="Excluir jogo"
             >
               <Trash2 size={16} />

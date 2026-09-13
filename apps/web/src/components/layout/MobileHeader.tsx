@@ -1,8 +1,8 @@
 export function MobileHeader() {
   return (
-    <header className="md:hidden flex items-center gap-2.5 h-14 px-4 flex-shrink-0 bg-surface/80 backdrop-blur-xl border-b border-border-subtle">
+    <header className="md:hidden flex h-14 flex-shrink-0 items-center gap-2.5 border-b border-border-subtle bg-surface px-4">
       <svg
-        className="w-5 h-5 text-accent flex-shrink-0"
+        className="h-5 w-5 flex-shrink-0 text-accent"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"

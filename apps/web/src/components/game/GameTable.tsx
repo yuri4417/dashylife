@@ -24,7 +24,7 @@ const COLUMNS = [
 
 export function GameTable({ games, sortKey, sortDirection, onSort, onEdit, onDelete }: GameTableProps) {
   return (
-    <div className="overflow-x-auto hidden md:block">
+    <div className="hidden overflow-x-auto md:block">
       <table className="w-full text-left">
         <thead>
           <tr className="border-b border-border-subtle">
@@ -32,42 +32,46 @@ export function GameTable({ games, sortKey, sortDirection, onSort, onEdit, onDel
               <th
                 key={col.key}
                 onClick={() => onSort(col.key)}
-                className="py-3 px-4 text-xs font-semibold text-tertiary uppercase tracking-wider cursor-pointer hover:text-primary select-none"
+                className="cursor-pointer select-none px-4 py-3 text-[10px] font-medium uppercase tracking-widest text-tertiary transition-colors hover:text-primary"
               >
                 <div className="flex items-center gap-1">
                   {col.label}
-                  {sortKey === col.key && <span>{sortDirection === 'asc' ? '▲' : '▼'}</span>}
+                  {sortKey === col.key && (
+                    <span className="text-accent">{sortDirection === 'asc' ? '▲' : '▼'}</span>
+                  )}
                 </div>
               </th>
             ))}
-            <th className="py-3 px-4 text-xs font-semibold text-tertiary uppercase tracking-wider">Ações</th>
+            <th className="px-4 py-3 text-[10px] font-medium uppercase tracking-widest text-tertiary">
+              Ações
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-border-subtle">
           {games.map((game) => (
-            <tr key={game.id} className="hover:bg-surface-active transition-colors">
-              <td className="py-4 px-4 text-sm text-primary font-medium">{game.title}</td>
-              <td className="py-4 px-4 text-sm text-primary">{game.platform}</td>
-              <td className="py-4 px-4">
+            <tr key={game.id} className="transition-colors hover:bg-surface-active">
+              <td className="px-4 py-4 text-sm font-medium text-primary">{game.title}</td>
+              <td className="px-4 py-4 text-sm text-primary">{game.platform}</td>
+              <td className="px-4 py-4">
                 <StatusBadge status={game.status} />
               </td>
-              <td className="py-4 px-4 text-sm text-tertiary">{game.date ? formatDate(game.date) : '-'}</td>
-              <td className="py-4 px-4 text-sm text-tertiary max-w-xs truncate">{game.description || '-'}</td>
-              <td className="py-4 px-4">
+              <td className="px-4 py-4 text-sm text-tertiary">{game.date ? formatDate(game.date) : '-'}</td>
+              <td className="max-w-xs truncate px-4 py-4 text-sm text-tertiary">{game.description || '-'}</td>
+              <td className="px-4 py-4">
                 <TagList gameId={game.id} tags={game.tags} />
               </td>
-              <td className="py-4 px-4">
-                <div className="flex items-center gap-2">
+              <td className="px-4 py-4">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => onEdit(game)}
-                    className="text-tertiary hover:text-primary transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-active"
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-surface-active hover:text-primary"
                     aria-label="Editar jogo"
                   >
                     <Edit3 size={16} />
                   </button>
                   <button
                     onClick={() => onDelete(game.id)}
-                    className="text-tertiary hover:text-danger transition-colors w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-active"
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-surface-active hover:text-danger"
                     aria-label="Excluir jogo"
                   >
                     <Trash2 size={16} />

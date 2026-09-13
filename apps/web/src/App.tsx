@@ -3,6 +3,7 @@ import { ClipboardList, Gamepad2, Home, Settings } from 'lucide-react';
 import { GameList } from './components/GameList';
 import { TodoList } from './components/TodoList';
 import { GameListHomeSummary } from './components/home/GameListHomeSummary';
+import { HeroTile } from './components/home/HeroTile';
 import { TodoListHomeSummary } from './components/home/TodoListHomeSummary';
 import { BottomNav, type MenuItem, type SectionType } from './components/layout/BottomNav';
 import { MobileHeader } from './components/layout/MobileHeader';
@@ -78,7 +79,8 @@ function App() {
       <main ref={mainRef} className="flex-1 flex flex-col min-w-0 min-h-0 overflow-y-auto pb-24 md:pb-0">
         <div className="p-4 sm:p-6 lg:p-8">
           {activeSection === 'home' && (
-            <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+            <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-4 sm:gap-5">
+              <HeroTile />
               {settings.todolist.enabled && <TodoListHomeSummary />}
               {settings.gamelist.enabled && <GameListHomeSummary />}
               <ServicesPanel settings={settings} />
