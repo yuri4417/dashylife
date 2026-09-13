@@ -8,7 +8,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/api/package.json packages/api/
 COPY packages/shared/package.json packages/shared/
 
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN npm install -g pnpm node-gyp && pnpm install --frozen-lockfile
 
 COPY packages/api/src packages/api/src
 COPY packages/api/tsconfig.json packages/api/
