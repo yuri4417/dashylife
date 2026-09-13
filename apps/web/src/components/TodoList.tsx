@@ -223,12 +223,12 @@ export function TodoList() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <h3 className="text-2xl font-semibold text-primary">Tarefas</h3>
+    <div className="max-w-2xl mx-auto w-full">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
+        <h3 className="text-xl sm:text-2xl font-semibold text-primary">Tarefas</h3>
         <button
           onClick={openCreateModal}
-          className="flex items-center gap-2 px-5 py-2 rounded-pill font-medium text-sm bg-action text-action-text hover:opacity-90 transition-opacity"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 sm:py-2 rounded-pill font-medium text-sm bg-action text-action-text hover:opacity-90 transition-opacity w-full sm:w-auto"
         >
           <Plus size={16} />
           Nova Tarefa
@@ -251,7 +251,7 @@ export function TodoList() {
         </div>
       ) : (
         <>
-        <div className="relative mb-8">
+        <div className="relative mb-6 sm:mb-8">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-tertiary" />
           <input
             type="text"
@@ -269,12 +269,12 @@ export function TodoList() {
             </p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {groupedTodos.map(({ date, todos: groupTodos }) => (
               <div key={date} className="space-y-3">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div className="flex-1 h-0.5 bg-border-subtle rounded-full" />
-                  <span className="text-lg font-bold text-primary whitespace-nowrap px-3">
+                  <span className="text-sm sm:text-lg font-bold text-primary whitespace-nowrap px-2 sm:px-3 text-center">
                     {formatGroupDate(date)}
                   </span>
                   <div className="flex-1 h-0.5 bg-border-subtle rounded-full" />
@@ -285,7 +285,7 @@ export function TodoList() {
                     return (
                       <li
                         key={todo.id}
-                        className={`flex items-center gap-4 px-5 py-4 bg-surface rounded-2xl ${
+                        className={`flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3.5 sm:py-4 bg-surface rounded-2xl ${
                           'border border-border/50 hover:border-border'
                         } ${
                           highlight === 'overdue' ? 'border-l-3 border-danger' : ''
@@ -315,7 +315,7 @@ export function TodoList() {
                         </div>
                         {todo.dueDate && (
                           <span
-                            className={`text-xs flex-shrink-0 ${
+                            className={`text-xs flex-shrink-0 hidden min-[400px]:inline ${
                               highlight === 'overdue'
                                 ? 'text-danger'
                                 : highlight === 'due-soon'
@@ -327,7 +327,7 @@ export function TodoList() {
                           </span>
                         )}
                         {todo.repetition && (
-                          <span className="text-xs text-tertiary flex-shrink-0 flex items-center gap-1" title={`Repete a cada ${todo.repetition.interval} ${todo.repetition.type === 'hours' ? 'horas' : todo.repetition.type === 'days' ? 'dias' : 'semanas'}`}>
+                          <span className="text-xs text-tertiary flex-shrink-0 hidden sm:flex items-center gap-1" title={`Repete a cada ${todo.repetition.interval} ${todo.repetition.type === 'hours' ? 'horas' : todo.repetition.type === 'days' ? 'dias' : 'semanas'}`}>
                             <Repeat2 size={12} /> {todo.repetition.interval}x {todo.repetition.type === 'hours' ? 'h' : todo.repetition.type === 'days' ? 'd' : 'sem'}
                           </span>
                         )}
@@ -353,16 +353,16 @@ export function TodoList() {
 
       {modalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-4"
           onClick={closeModal}
         >
           <div
             ref={modalRef}
-            className="bg-surface border border-border/50 rounded-2xl w-full max-w-md mx-4 shadow-2xl"
+            className="bg-surface border border-border/50 rounded-2xl w-full max-w-md shadow-2xl max-h-[90dvh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-8">
+            <div className="p-4 sm:p-8">
+              <div className="flex items-center justify-between mb-6 sm:mb-8">
                 <h3 className="text-lg font-semibold text-primary">{isEditing ? 'Editar Tarefa' : 'Nova Tarefa'}</h3>
                 <button
                   onClick={closeModal}

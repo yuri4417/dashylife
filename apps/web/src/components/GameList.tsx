@@ -271,20 +271,20 @@ export function GameList() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <h3 className="text-2xl font-semibold text-primary">GameList</h3>
+    <div className="max-w-6xl mx-auto w-full">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
+        <h3 className="text-xl sm:text-2xl font-semibold text-primary">GameList</h3>
         <div className="flex items-center gap-2">
           <button
             onClick={handleExportFilteredJSON}
-            className="flex items-center gap-2 px-3 py-2 rounded-pill text-sm font-medium text-tertiary border border-border hover:text-primary hover:border-border-subtle transition-colors"
+            className="flex items-center justify-center gap-2 px-3 py-2.5 sm:py-2 rounded-pill text-sm font-medium text-tertiary border border-border hover:text-primary hover:border-border-subtle transition-colors"
             title="Exportar jogos filtrados"
           >
             <Download size={16} />
           </button>
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 px-5 py-2 rounded-pill font-medium text-sm bg-action text-action-text hover:opacity-90 transition-opacity"
+            className="flex flex-1 sm:flex-none items-center justify-center gap-2 px-5 py-2.5 sm:py-2 rounded-pill font-medium text-sm bg-action text-action-text hover:opacity-90 transition-opacity"
           >
             <Plus size={16} />
             Novo Jogo
@@ -308,7 +308,7 @@ export function GameList() {
         </div>
       ) : (
         <>
-        <div className="relative mb-8">
+        <div className="relative mb-6 sm:mb-8">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-tertiary" />
           <input
             type="text"
@@ -319,7 +319,7 @@ export function GameList() {
           />
         </div>
 
-        <div className="mb-8 bg-surface border border-border/50 rounded-2xl p-6">
+        <div className="mb-6 sm:mb-8 bg-surface border border-border/50 rounded-2xl p-4 sm:p-6">
           <div className="flex items-center gap-2 mb-4">
             <Filter size={16} className="text-accent" />
             <span className="text-sm font-medium text-tertiary">Filtros</span>
@@ -381,7 +381,59 @@ export function GameList() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <div className="space-y-3 md:hidden">
+            {filteredGames.map((game) => (
+              <article key={game.id} className="bg-surface border border-border/50 rounded-2xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold text-primary truncate">{game.title}</h4>
+                    <p className="text-xs text-tertiary mt-0.5">{game.platform}{game.date ? ` • ${formatDate(game.date)}` : ''}</p>
+                  </div>
+                  <span className={`inline-flex flex-shrink-0 items-center px-2.5 py-0.5 rounded-pill text-xs font-medium ${
+                    game.status === 'jogando' ? 'bg-blue-500/20 text-blue-400' :
+                    game.status === 'zerado' ? 'bg-green-500/20 text-green-400' :
+                    game.status === 'droppado' ? 'bg-red-500/20 text-red-400' :
+                    'bg-tertiary/20 text-tertiary'
+                  }`}>
+                    {GAME_STATUS_OPTIONS.find(s => s.value === game.status)?.label || game.status}
+                  </span>
+                </div>
+                {game.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-3">
+                    {game.tags.slice(0, 4).map((tag, idx) => (
+                      <span
+                        key={`${game.id}-m-${idx}`}
+                        className={`inline-flex items-center px-2 py-0.5 rounded-pill text-xs font-medium border ${getTagColor(tag)}`}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                    {game.tags.length > 4 && (
+                      <span className="text-xs text-tertiary">+{game.tags.length - 4}</span>
+                    )}
+                  </div>
+                )}
+                <div className="flex items-center justify-end gap-1 mt-2">
+                  <button
+                    onClick={() => openEditModal(game)}
+                    className="text-tertiary hover:text-primary transition-colors w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-active"
+                    aria-label="Editar jogo"
+                  >
+                    <Edit3 size={16} />
+                  </button>
+                  <button
+                    onClick={() => deleteGame(game.id)}
+                    className="text-tertiary hover:text-danger transition-colors w-9 h-9 flex items-center justify-center rounded-full hover:bg-surface-active"
+                    aria-label="Excluir jogo"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="overflow-x-auto hidden md:block">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-border-subtle">
@@ -464,20 +516,21 @@ export function GameList() {
               </tbody>
             </table>
           </div>
+          </>
         )}
 
         {modalOpen && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-4"
             onClick={closeModal}
           >
             <div
               ref={modalRef}
-              className="bg-surface border border-border/50 rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+              className="bg-surface border border-border/50 rounded-2xl w-full max-w-lg shadow-2xl max-h-[90dvh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-8">
+              <div className="p-4 sm:p-8">
+                <div className="flex items-center justify-between mb-6 sm:mb-8">
                   <h3 className="text-lg font-semibold text-primary">{isEditing ? 'Editar Jogo' : 'Novo Jogo'}</h3>
                   <button
                     onClick={closeModal}

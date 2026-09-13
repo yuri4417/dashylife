@@ -26,7 +26,7 @@ During development, the following AI models were utilized:
 
 | Model                            | Usage                                                                       |
 | -------------------------------- | --------------------------------------------------------------------------- |
-| **Qwen 3.6 35B A3B (IQ3_S)**     | Primary model — runs locally on the developer's machine (RX 580 + 16GB RAM) |
+| **Qwen 3.6 35B A3B (IQ3_S)**     | Primary model — runs locally on the developer's machine (RX 6750 XT + 16GB RAM) |
 | **Nemotron 3 Ultra (free tier)** | Secondary model — used occasionally via OpenRouter                          |
 
 ---
@@ -61,7 +61,7 @@ Personal game library manager featuring:
 
 | Layer                | Technology                     |
 | -------------------- | ------------------------------ |
-| **Framework**        | React 19, Expo (React Native)  |
+| **Framework**        | React 19                       |
 | **Build Tools**      | Vite 6, Turborepo              |
 | **Styling**          | TailwindCSS v4                 |
 | **Runtime**          | Node.js 20+                    |
@@ -80,8 +80,7 @@ Personal game library manager featuring:
 ```
 dashylife/
 ├── apps/
-│   ├── web/          # Web application (React + Vite)
-│   └── mobile/       # Mobile application (Expo + React Native)
+│   └── web/          # Web application (React + Vite)
 ├── packages/
 │   ├── api/          # Backend API (Fastify + SQLite)
 │   └── shared/       # Shared types, schemas, and utilities
@@ -119,7 +118,7 @@ pnpm install
 ### Running Locally (Development)
 
 ```bash
-# Start all services (API, Web, Mobile) in development mode
+# Start all services (API, Web) in development mode
 pnpm run dev
 ```
 
@@ -127,7 +126,17 @@ This will start:
 
 - **API** — `http://localhost:3000`
 - **Web** — `http://localhost:5173` (Vite dev server)
-- **Mobile** — Expo development server for iOS/Android
+
+### Access from the local network
+
+The Vite dev server binds to all interfaces (`host: true`), so the web app is reachable from other devices (e.g. phones) on the same network. The API already listens on `0.0.0.0:3000`, and `/api` requests are proxied by Vite, so no extra config is needed.
+
+```bash
+# Find your machine's LAN IP
+hostname -I
+```
+
+Then open `http://<LAN-IP>:5173` on the other device (e.g. `http://192.168.1.10:5173`).
 
 ### Running Individual Services
 
@@ -138,10 +147,6 @@ pnpm run dev
 
 # Start the web app
 cd apps/web
-pnpm run dev
-
-# Start the mobile app
-cd apps/mobile
 pnpm run dev
 ```
 
