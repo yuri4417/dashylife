@@ -35,11 +35,3 @@ export function formatDate(dateString: string): string {
   return `${dayNumber} ${month} ${year} - ${day}`;
 }
 
-export function isOverdue(dueDate: string): boolean {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = new Date(dueDate);
-  due.setHours(0, 0, 0, 0);
-
-  return due.getTime() < today.getTime();
-}
