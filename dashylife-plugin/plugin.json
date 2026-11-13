@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "dashylife",
+  "version": "0.1.0",
+  "description": "Acesse e gerencie tarefas e jogos do DashyLife hospedado na sua rede local.",
+  "author": { "name": "DashyLife" },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "DashyLife",
+        "shortDescription": "Tarefas e jogos pessoais",
+        "longDescription": "Conecta ao servidor DashyLife informado em DASHYLIFE_URL. O servidor MCP precisa rodar em uma máquina que alcance o IP local do homelab.",
+        "developerName": "DashyLife",
+        "category": "Productivity",
+        "capabilities": ["Interactive"],
+        "defaultPrompt": "Consulte e organize minhas tarefas e minha biblioteca de jogos no DashyLife."
+      }
+    }
+  }
+}

@@ -176,6 +176,18 @@ To stop:
 docker compose down
 ```
 
+### API key for integrations
+
+The API can optionally require a bearer token for every `/api/*` endpoint. Set
+`DASHYLIFE_API_KEY` in the shell or in a `.env` file next to `docker-compose.yml`
+before starting the stack. Use a long, random value and configure the same value
+as `DASHYLIFE_API_KEY` in trusted integrations such as the local MCP server.
+Requests must send `Authorization: Bearer <key>`. If the variable is unset, the
+API keeps its existing unauthenticated behavior for browser-only deployments.
+When a key is enabled, the web app asks for it on its first API request and keeps
+it in that browser's local storage.
+Do not expose the API publicly without configuring authentication and HTTPS.
+
 ---
 
 ## 📝 Scripts

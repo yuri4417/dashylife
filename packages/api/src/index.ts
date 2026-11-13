@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import { timingSafeEqual } from 'node:crypto';
 import { initDatabase, getSetting, upsertSetting } from './db.js';
 import { TodoRepository } from './repositories/todo.repository.js';
 import { GameRepository } from './repositories/game.repository.js';
@@ -7,7 +8,23 @@ import { Repetition, GameStatus } from '@dashylife/shared';
 
 const app = Fastify();
 
+// Optional bearer-token authentication for private integrations such as the MCP.
+// When unset, existing browser-only deployments keep their current behavior.
+const apiKey = process.env.DASHYLIFE_API_KEY?.trim() || undefined;
+
 app.register(cors, { origin: '*' });
+
+app.addHook('onRequest', async (request, reply) => {
+  if (!apiKey || !request.url.startsWith('/api/')) return;
+
+  const authorization = request.headers.authorization;
+  const suppliedKey = authorization?.startsWith('Bearer ') ? authorization.slice(7).trim() : undefined;
+  const suppliedBuffer = suppliedKey ? Buffer.from(suppliedKey) : undefined;
+  const expectedBuffer = Buffer.from(apiKey);
+  if (!suppliedBuffer || suppliedBuffer.length !== expectedBuffer.length || !timingSafeEqual(suppliedBuffer, expectedBuffer)) {
+    return reply.code(401).send({ error: 'Unauthorized' });
+  }
+});
 
 initDatabase();
 
