@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "dashylife": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${PLUGIN_ROOT}/server/index.js"],
+      "cwd": "${PLUGIN_ROOT}",
+      "env": {
+        "DASHYLIFE_URL": "http://192.168.1.200:8081",
+        "DASHYLIFE_MCP_API_KEY": ""
+      }
+    }
+  }
+}

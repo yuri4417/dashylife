@@ -1,0 +1,17 @@
+{
+  "interface": {
+    "capabilities": ["Interactive"],
+    "category": "Productivity",
+    "defaultPrompt": "Consulte e organize minhas tarefas e minha biblioteca de jogos no DashyLife.",
+    "developerName": "Yuri Henrique",
+    "displayName": "DashyLife",
+    "longDescription": "Conecta ao servidor DashyLife em DASHYLIFE_URL. Requer uma chave MCP gerada nas Configurações e um cliente MCP com Node.js na rede do homelab.",
+    "shortDescription": "Tarefas e jogos pessoais"
+  },
+  "name": "dashylife",
+  "version": "0.2.0",
+  "description": "Acesse e gerencie tarefas e jogos do DashyLife hospedado na sua rede local.",
+  "author": { "name": "Yuri Henrique", "email": "yreis188@gmail.com" },
+  "keywords": [],
+  "mcpServers": "./.mcp.json"
+}

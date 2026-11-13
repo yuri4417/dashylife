@@ -1,9 +1,202 @@
-import { Gamepad2, Import, Server, Upload, X } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronLeft, ChevronRight, Copy, Gamepad2, Import, KeyRound, RefreshCw, Server, ShieldCheck, ShieldOff, Upload, X } from 'lucide-react';
 import type { AppSettings } from '@dashylife/shared';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
-import { TextInput } from '../ui/FormField';
+import { Field, TextInput } from '../ui/FormField';
 import { Toggle } from '../ui/Toggle';
+import {
+  activateMcp,
+  deactivateMcp,
+  fetchMcpActionLogs,
+  fetchMcpAdminStatus,
+  rotateMcpKey,
+  type McpActionLogs,
+} from '../../utils/api';
+
+export function McpSettingsPanel() {
+  const [adminKey, setAdminKey] = useState('');
+  const [connected, setConnected] = useState(false);
+  const [enabled, setEnabled] = useState(false);
+  const [logs, setLogs] = useState<McpActionLogs | null>(null);
+  const [offset, setOffset] = useState(0);
+  const [newApiKey, setNewApiKey] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const loadLogs = async (key: string, nextOffset = 0) => {
+    const result = await fetchMcpActionLogs(key, nextOffset);
+    setLogs(result);
+    setOffset(nextOffset);
+  };
+
+  const connectAdmin = async () => {
+    setLoading(true);
+    setError('');
+    setMessage('');
+    try {
+      const status = await fetchMcpAdminStatus(adminKey);
+      setEnabled(status.enabled);
+      await loadLogs(adminKey);
+      setConnected(true);
+    } catch (cause) {
+      setConnected(false);
+      setError(cause instanceof Error ? cause.message : 'Não foi possível conectar à administração do MCP.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const runAdminAction = async (action: 'activate' | 'rotate' | 'deactivate') => {
+    setLoading(true);
+    setError('');
+    setMessage('');
+    setNewApiKey('');
+    try {
+      if (action === 'activate') {
+        const result = await activateMcp(adminKey);
+        setEnabled(result.enabled);
+        setNewApiKey(result.apiKey);
+        setMessage('MCP ativado. Copie a chave agora; ela não poderá ser consultada novamente.');
+      } else if (action === 'rotate') {
+        const result = await rotateMcpKey(adminKey);
+        setNewApiKey(result.apiKey);
+        setMessage('Chave rotacionada. A chave anterior foi revogada; copie a nova chave agora.');
+      } else {
+        const result = await deactivateMcp(adminKey);
+        setEnabled(result.enabled);
+        setMessage('MCP desativado e chave revogada.');
+      }
+      await loadLogs(adminKey, 0);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Não foi possível atualizar a configuração do MCP.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyApiKey = async () => {
+    try {
+      await navigator.clipboard.writeText(newApiKey);
+      setMessage('Chave copiada. Guarde-a no cliente MCP.');
+    } catch {
+      setError('Não foi possível copiar automaticamente. Selecione e copie a chave exibida.');
+    }
+  };
+
+  return (
+    <Card className="space-y-5">
+      <div className="flex items-center gap-3">
+        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-surface-active text-accent">
+          <KeyRound size={18} />
+        </span>
+        <div className="min-w-0">
+          <h3 className="font-display text-lg font-semibold tracking-tight text-primary">Acesso MCP</h3>
+          <p className="text-xs text-tertiary">Ative a integração e acompanhe chamadas de ferramentas.</p>
+        </div>
+      </div>
+
+      {!connected ? (
+        <div className="space-y-3">
+          <p className="text-sm text-tertiary">
+            Informe a chave mestre configurada no servidor como <code>DASHYLIFE_ADMIN_KEY</code>. Ela autoriza somente o gerenciamento do MCP.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <Field label="Chave mestre do servidor">
+              <TextInput type="password" autoComplete="current-password" value={adminKey} onChange={(event) => setAdminKey(event.target.value)} />
+            </Field>
+            <Button variant="secondary" disabled={loading || !adminKey.trim()} onClick={connectAdmin}>
+              {loading ? 'Conectando…' : 'Conectar'}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2 text-sm font-medium text-primary">
+              {enabled ? <ShieldCheck size={18} className="text-accent" /> : <ShieldOff size={18} className="text-tertiary" />}
+              MCP {enabled ? 'ativo — chave obrigatória' : 'desativado'}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {!enabled ? (
+                <Button disabled={loading} onClick={() => void runAdminAction('activate')}>Ativar MCP</Button>
+              ) : (
+                <>
+                  <Button variant="secondary" disabled={loading} onClick={() => void runAdminAction('rotate')}>
+                    <span className="inline-flex items-center gap-2"><RefreshCw size={14} /> Rotacionar chave</span>
+                  </Button>
+                  <Button variant="secondary" disabled={loading} onClick={() => window.confirm('Desativar o MCP e revogar a chave atual?') && void runAdminAction('deactivate')}>
+                    Desativar
+                  </Button>
+                </>
+              )}
+              <Button variant="ghost" disabled={loading} onClick={() => { setConnected(false); setAdminKey(''); setLogs(null); setNewApiKey(''); }}>
+                Desconectar
+              </Button>
+            </div>
+          </div>
+
+          {newApiKey && (
+            <div className="space-y-2 rounded-lg border border-accent/30 bg-surface-active p-4">
+              <p className="text-sm font-medium text-primary">Chave MCP — exibida somente agora</p>
+              <div className="flex gap-2">
+                <TextInput readOnly value={newApiKey} className="font-mono text-xs" />
+                <Button variant="secondary" aria-label="Copiar chave MCP" onClick={() => void copyApiKey()}>
+                  <Copy size={16} />
+                </Button>
+              </div>
+              <p className="text-xs text-tertiary">Configure-a como <code>DASHYLIFE_MCP_API_KEY</code> no processo MCP.</p>
+            </div>
+          )}
+        </>
+      )}
+
+      {message && <p role="status" className="text-sm text-accent">{message}</p>}
+      {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+
+      {connected && (
+        <div className="space-y-3 border-t border-border-subtle pt-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h4 className="text-sm font-semibold text-primary">Log de ações MCP</h4>
+              <p className="text-xs text-tertiary">Armazena operação, resultado e erro técnico; nunca os dados enviados.</p>
+            </div>
+            <Button variant="ghost" disabled={loading} onClick={() => void loadLogs(adminKey, 0)}>
+              <span className="inline-flex items-center gap-2"><RefreshCw size={14} /> Atualizar</span>
+            </Button>
+          </div>
+          <div className="overflow-x-auto rounded-lg border border-border-subtle">
+            <table className="w-full min-w-[620px] text-left text-xs">
+              <thead className="bg-surface-active text-tertiary">
+                <tr><th className="px-3 py-2">Data</th><th className="px-3 py-2">Ferramenta</th><th className="px-3 py-2">Resultado</th><th className="px-3 py-2">Tempo</th><th className="px-3 py-2">Erro técnico</th></tr>
+              </thead>
+              <tbody className="divide-y divide-border-subtle">
+                {logs?.items.map((entry) => (
+                  <tr key={entry.id} className="text-primary">
+                    <td className="whitespace-nowrap px-3 py-2">{new Date(entry.createdAt).toLocaleString('pt-BR')}</td>
+                    <td className="px-3 py-2 font-mono">{entry.tool}</td>
+                    <td className={`px-3 py-2 ${entry.status < 400 ? 'text-accent' : 'text-danger'}`}>{entry.status}</td>
+                    <td className="whitespace-nowrap px-3 py-2">{entry.durationMs} ms</td>
+                    <td className="max-w-sm break-words px-3 py-2 text-tertiary">{entry.error || '—'}</td>
+                  </tr>
+                ))}
+                {!logs?.items.length && <tr><td className="px-3 py-6 text-center text-tertiary" colSpan={5}>Nenhuma chamada registrada.</td></tr>}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex items-center justify-between text-xs text-tertiary">
+            <span>{logs ? `${logs.total} registro(s)` : 'Carregando registros…'}</span>
+            <div className="flex gap-2">
+              <Button variant="secondary" aria-label="Página anterior dos logs" disabled={loading || offset === 0} onClick={() => void loadLogs(adminKey, Math.max(0, offset - (logs?.limit || 25)))}><ChevronLeft size={16} /></Button>
+              <Button variant="secondary" aria-label="Próxima página dos logs" disabled={loading || !logs || offset + logs.limit >= logs.total} onClick={() => void loadLogs(adminKey, offset + (logs?.limit || 25))}><ChevronRight size={16} /></Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
 
 interface ServicesPanelProps {
   settings: AppSettings;

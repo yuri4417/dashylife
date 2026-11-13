@@ -1,26 +1,58 @@
 import { Todo, Repetition, Game, GameListSettings } from '@dashylife/shared';
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || '/api';
-const API_KEY_STORAGE = 'dashylife-api-key';
 
 async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
-  const send = (key?: string) => {
-    const headers = new Headers(init.headers);
-    if (key) headers.set('Authorization', `Bearer ${key}`);
-    return fetch(`${API_URL}${path}`, { ...init, headers });
-  };
+  return fetch(`${API_URL}${path}`, init);
+}
 
-  let key = window.localStorage.getItem(API_KEY_STORAGE) || undefined;
-  let response = await send(key);
-  if (response.status !== 401) return response;
+export interface McpAdminStatus { enabled: boolean; }
+export interface McpActionLog {
+  id: number;
+  createdAt: string;
+  tool: string;
+  status: number;
+  durationMs: number;
+  error: string | null;
+}
+export interface McpActionLogs {
+  items: McpActionLog[];
+  total: number;
+  limit: number;
+  offset: number;
+}
 
-  const enteredKey = window.prompt('O DashyLife exige uma chave de API. Informe a chave configurada no servidor:')?.trim();
-  if (!enteredKey) return response;
-  window.localStorage.setItem(API_KEY_STORAGE, enteredKey);
-  key = enteredKey;
-  response = await send(key);
-  if (response.status === 401) window.localStorage.removeItem(API_KEY_STORAGE);
-  return response;
+async function mcpAdminFetch(path: string, adminKey: string, init: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(init.headers);
+  headers.set('X-Dashylife-Admin-Key', adminKey);
+  return fetch(`${API_URL}/admin/mcp${path}`, { ...init, headers });
+}
+
+async function readAdminResponse<T>(response: Response): Promise<T> {
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || `Falha na administração do MCP (HTTP ${response.status}).`);
+  return payload as T;
+}
+
+export async function fetchMcpAdminStatus(adminKey: string): Promise<McpAdminStatus> {
+  return readAdminResponse(await mcpAdminFetch('', adminKey));
+}
+
+export async function activateMcp(adminKey: string): Promise<McpAdminStatus & { apiKey: string }> {
+  return readAdminResponse(await mcpAdminFetch('/activate', adminKey, { method: 'POST' }));
+}
+
+export async function rotateMcpKey(adminKey: string): Promise<McpAdminStatus & { apiKey: string }> {
+  return readAdminResponse(await mcpAdminFetch('/rotate-key', adminKey, { method: 'POST' }));
+}
+
+export async function deactivateMcp(adminKey: string): Promise<McpAdminStatus> {
+  return readAdminResponse(await mcpAdminFetch('/deactivate', adminKey, { method: 'POST' }));
+}
+
+export async function fetchMcpActionLogs(adminKey: string, offset: number, limit = 25): Promise<McpActionLogs> {
+  const query = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+  return readAdminResponse(await mcpAdminFetch(`/logs?${query}`, adminKey));
 }
 
 export async function fetchTodos(): Promise<Todo[]> {

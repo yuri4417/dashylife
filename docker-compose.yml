@@ -6,7 +6,7 @@ services:
     environment:
       - NODE_ENV=production
       - DATA_DIR=/app/data
-      - DASHYLIFE_API_KEY=${DASHYLIFE_API_KEY:-}
+      - DASHYLIFE_ADMIN_KEY=${DASHYLIFE_ADMIN_KEY:-}
     volumes:
       - ./data:/app/data
     restart: unless-stopped

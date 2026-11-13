@@ -11,6 +11,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { ImportModal, ImportReviewModal } from './components/settings/ImportModals';
 import {
   GamelistSettingsPanel,
+  McpSettingsPanel,
   ServicesPanel,
   ServicesSettingsCard,
 } from './components/settings/SettingsPanels';
@@ -93,6 +94,7 @@ function App() {
           {activeSection === 'settings' && (
             <div className="max-w-4xl mx-auto">
               <div className="space-y-4 sm:space-y-6">
+                <McpSettingsPanel />
                 <ServicesSettingsCard
                   settings={settings}
                   onToggleGamelist={(enabled) =>

@@ -57,6 +57,17 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS mcp_action_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at TEXT NOT NULL,
+    tool TEXT NOT NULL,
+    status INTEGER NOT NULL,
+    duration_ms INTEGER NOT NULL,
+    error TEXT
+  )
+`);
+
 export { db }
 export function initDatabase() {
   const stmt = db.prepare('SELECT COUNT(*) as count FROM todos');
@@ -335,7 +346,7 @@ export function getSetting(key: string): AppSetting | undefined {
   return JSON.parse(row.value);
 }
 
-export function upsertSetting(key: string, value: AppSetting): void {
+export function upsertSetting(key: string, value: unknown): void {
   const now = new Date().toISOString();
   const existing = getSetting(key);
   if (existing) {
@@ -345,4 +356,65 @@ export function upsertSetting(key: string, value: AppSetting): void {
     const stmt = db.prepare('INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)');
     stmt.run(key, JSON.stringify(value), now);
   }
+}
+
+export interface McpControlSettings {
+  enabled: boolean;
+  apiKeyHash: string | null;
+}
+
+export interface McpActionLog {
+  id: number;
+  createdAt: string;
+  tool: string;
+  status: number;
+  durationMs: number;
+  error: string | null;
+}
+
+export function getMcpControlSettings(): McpControlSettings {
+  const stmt = db.prepare('SELECT value FROM settings WHERE key = ?');
+  const row = stmt.get('mcp-control') as { value: string } | undefined;
+  if (!row) return { enabled: false, apiKeyHash: null };
+  const parsed = JSON.parse(row.value) as Partial<McpControlSettings>;
+  return { enabled: parsed.enabled === true, apiKeyHash: parsed.apiKeyHash || null };
+}
+
+export function saveMcpControlSettings(value: McpControlSettings): void {
+  upsertSetting('mcp-control', value);
+}
+
+export function addMcpActionLog(entry: Omit<McpActionLog, 'id'>): void {
+  db.prepare(
+    'INSERT INTO mcp_action_logs (created_at, tool, status, duration_ms, error) VALUES (?, ?, ?, ?, ?)'
+  ).run(entry.createdAt, entry.tool, entry.status, entry.durationMs, entry.error);
+  db.prepare(`
+    DELETE FROM mcp_action_logs
+    WHERE id NOT IN (SELECT id FROM mcp_action_logs ORDER BY id DESC LIMIT 10000)
+  `).run();
+}
+
+export function listMcpActionLogs(limit: number, offset: number): { items: McpActionLog[]; total: number } {
+  const count = db.prepare('SELECT COUNT(*) AS total FROM mcp_action_logs').get() as { total: number };
+  const rows = db.prepare(
+    'SELECT id, created_at, tool, status, duration_ms, error FROM mcp_action_logs ORDER BY id DESC LIMIT ? OFFSET ?'
+  ).all(limit, offset) as Array<{
+    id: number;
+    created_at: string;
+    tool: string;
+    status: number;
+    duration_ms: number;
+    error: string | null;
+  }>;
+  return {
+    total: count.total,
+    items: rows.map((row) => ({
+      id: row.id,
+      createdAt: row.created_at,
+      tool: row.tool,
+      status: row.status,
+      durationMs: row.duration_ms,
+      error: row.error,
+    })),
+  };
 }

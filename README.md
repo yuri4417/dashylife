@@ -176,17 +176,19 @@ To stop:
 docker compose down
 ```
 
-### API key for integrations
+### MCP access and authentication
 
-The API can optionally require a bearer token for every `/api/*` endpoint. Set
-`DASHYLIFE_API_KEY` in the shell or in a `.env` file next to `docker-compose.yml`
-before starting the stack. Use a long, random value and configure the same value
-as `DASHYLIFE_API_KEY` in trusted integrations such as the local MCP server.
-Requests must send `Authorization: Bearer <key>`. If the variable is unset, the
-API keeps its existing unauthenticated behavior for browser-only deployments.
-When a key is enabled, the web app asks for it on its first API request and keeps
-it in that browser's local storage.
-Do not expose the API publicly without configuring authentication and HTTPS.
+The MCP starts disabled. Configure a long, random `DASHYLIFE_ADMIN_KEY` in a
+`.env` file next to `docker-compose.yml`; this key authorizes MCP management in
+the web settings page. Activate the MCP there to generate its separate API key.
+Every MCP tool call requires that API key. The generated key is shown once;
+rotate it in Settings if it is lost. Disabling the MCP revokes the key.
+
+The browser app's existing `/api` endpoints remain available independently of
+the MCP toggle. MCP actions are recorded in the Settings log viewer without
+storing task/game contents or credentials; the newest 10,000 entries are kept.
+Keep the admin key private and do not
+expose the homelab publicly without suitable network controls and HTTPS.
 
 ---
 
