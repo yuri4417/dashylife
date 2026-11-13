@@ -106,7 +106,7 @@ export function useTodos() {
 
     try {
       const repetition: Repetition | undefined = formData.repetitionEnabled
-        ? { type: formData.repetitionType, interval: formData.repetitionInterval }
+        ? { type: formData.repetitionType, interval: Math.max(1, Math.floor(Number(formData.repetitionInterval) || 1)) }
         : undefined;
       const payload = {
         title: formData.title,

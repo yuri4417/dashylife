@@ -1,4 +1,6 @@
 import { Button } from '../ui/Button';
+import { DateInput } from '../ui/DateInput';
+import { Minus, Plus } from 'lucide-react';
 import { Checkbox } from '../ui/Checkbox';
 import { CharCounter, Field, FieldError, SelectInput, TextArea, TextInput } from '../ui/FormField';
 import { Modal } from '../ui/Modal';
@@ -66,12 +68,7 @@ export function TodoModal({
       </Field>
 
       <Field label="Data de vencimento">
-        <input
-          type="date"
-          value={formData.dueDate}
-          onChange={(e) => onUpdateForm('dueDate', e.target.value)}
-          className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-primary transition-colors focus:border-accent focus:outline-none"
-        />
+        <DateInput label="Data de vencimento" value={formData.dueDate} onChange={(value) => onUpdateForm('dueDate', value)} />
       </Field>
 
       <div className="space-y-3">
@@ -85,13 +82,11 @@ export function TodoModal({
           <div className="flex gap-3">
             <div className="flex-1">
               <label className="block text-xs font-medium text-tertiary mb-1.5">Intervalo</label>
-              <input
-                type="number"
-                min={1}
-                value={formData.repetitionInterval}
-                onChange={(e) => onUpdateForm('repetitionInterval', e.target.value)}
-                className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-primary transition-colors focus:border-accent focus:outline-none"
-              />
+              <div className="number-stepper">
+                <button type="button" aria-label="Diminuir intervalo" disabled={Number(formData.repetitionInterval) <= 1} onClick={() => onUpdateForm('repetitionInterval', String(Math.max(1, Number(formData.repetitionInterval) - 1)))}><Minus size={16}/></button>
+                <input type="number" aria-label="Intervalo" min={1} step={1} value={formData.repetitionInterval} onChange={(event) => onUpdateForm('repetitionInterval', event.target.value)} onBlur={() => onUpdateForm('repetitionInterval', String(Math.max(1, Math.floor(Number(formData.repetitionInterval) || 1))))} />
+                <button type="button" aria-label="Aumentar intervalo" onClick={() => onUpdateForm('repetitionInterval', String(Math.max(1, Number(formData.repetitionInterval) || 0) + 1))}><Plus size={16}/></button>
+              </div>
             </div>
             <div className="flex-1">
               <label className="block text-xs font-medium text-tertiary mb-1.5">Unidade</label>

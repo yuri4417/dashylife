@@ -19,7 +19,7 @@ export function Checkbox({ checked, onChange, label, ariaLabel }: CheckboxProps)
           className="peer h-5 w-5 appearance-none cursor-pointer rounded-md border-2 border-border transition-colors hover:border-tertiary checked:border-accent checked:bg-accent"
         />
         <Check
-          className="pointer-events-none absolute left-0.5 top-0.5 h-3.5 w-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+          className="pointer-events-none absolute left-0.5 top-0.5 h-3.5 w-3.5 text-black opacity-0 transition-opacity peer-checked:opacity-100"
           strokeWidth={3}
         />
       </span>

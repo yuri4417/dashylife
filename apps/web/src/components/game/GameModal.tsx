@@ -2,6 +2,7 @@ import type { GameStatus } from '@dashylife/shared';
 import { GAME_STATUS_OPTIONS } from '../../utils/gameUtils';
 import type { GameFormData } from '../../hooks/useGames';
 import { Button } from '../ui/Button';
+import { DateInput } from '../ui/DateInput';
 import { CharCounter, Field, FieldError, SelectInput, TextArea, TextInput } from '../ui/FormField';
 import { Modal } from '../ui/Modal';
 
@@ -78,12 +79,7 @@ export function GameModal({
       </Field>
 
       <Field label="Data">
-        <input
-          type="date"
-          value={formData.date}
-          onChange={(e) => onUpdateForm('date', e.target.value)}
-          className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-sm text-primary transition-colors focus:border-accent focus:outline-none"
-        />
+        <DateInput label="Data" value={formData.date} onChange={(value) => onUpdateForm('date', value)} />
       </Field>
 
       <Field label="Descrição (opcional)">
