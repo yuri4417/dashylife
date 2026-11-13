@@ -37,7 +37,7 @@ function getFullDate(): string {
 
 export function HeroTile() {
   return (
-    <section className="rounded-xl border border-border-subtle bg-surface p-5 sm:p-6">
+    <section className="home-hero rounded-xl border border-border-subtle bg-surface p-5 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[10px] font-medium uppercase tracking-widest text-tertiary">Visão geral</p>

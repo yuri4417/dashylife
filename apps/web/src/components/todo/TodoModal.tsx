@@ -97,7 +97,8 @@ export function TodoModal({
               <label className="block text-xs font-medium text-tertiary mb-1.5">Unidade</label>
               <SelectInput
                 value={formData.repetitionType}
-                onChange={(e) => onUpdateForm('repetitionType', e.target.value)}
+                label="Unidade"
+                onValueChange={(value) => onUpdateForm('repetitionType', value)}
               >
                 <option value="hours">Horas</option>
                 <option value="days">Dias</option>

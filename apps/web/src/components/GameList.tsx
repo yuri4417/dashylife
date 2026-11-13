@@ -3,7 +3,6 @@ import { useGames } from '../hooks/useGames';
 import { Button } from './ui/Button';
 import { SearchInput } from './ui/SearchInput';
 import { EmptyState, ErrorState, LoadingState } from './ui/States';
-import { GameCards } from './game/GameCards';
 import { GameFilters } from './game/GameFilters';
 import { GameModal } from './game/GameModal';
 import { GameTable } from './game/GameTable';
@@ -43,7 +42,7 @@ export function GameList() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto w-full">
+      <div className="module-page max-w-6xl mx-auto w-full">
         <ListHeader onCreate={openCreateModal} onExport={handleExportFilteredJSON} />
         <LoadingState />
       </div>
@@ -52,7 +51,7 @@ export function GameList() {
 
   if (error) {
     return (
-      <div className="max-w-6xl mx-auto w-full">
+      <div className="module-page max-w-6xl mx-auto w-full">
         <ListHeader onCreate={openCreateModal} onExport={handleExportFilteredJSON} />
         <ErrorState message={error} onRetry={loadGames} />
       </div>
@@ -62,7 +61,7 @@ export function GameList() {
   const hasActiveFilters = searchQuery || platformFilter.length > 0 || statusFilter.length > 0;
 
   return (
-    <div className="max-w-6xl mx-auto w-full">
+    <div className="module-page max-w-6xl mx-auto w-full">
       <ListHeader onCreate={openCreateModal} onExport={handleExportFilteredJSON} />
       <SearchInput
         value={searchQuery}
@@ -87,7 +86,6 @@ export function GameList() {
         />
       ) : (
         <>
-          <GameCards games={filteredGames} onEdit={openEditModal} onDelete={deleteGame} />
           <GameTable
             games={filteredGames}
             sortKey={sortConfig.key}
@@ -117,12 +115,10 @@ export function GameList() {
 
 function ListHeader({ onCreate, onExport }: { onCreate: () => void; onExport: () => void }) {
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:mb-8">
+    <div className="page-heading module-heading">
       <div>
-        <h3 className="font-display text-2xl font-semibold tracking-tight text-primary">GameList</h3>
-        <p className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-tertiary">
-          Gerencie sua biblioteca de jogos
-        </p>
+        <span className="concept-eyebrow">SUA PRÓXIMA AVENTURA</span><h1>GameList</h1>
+        <p>Todos os seus jogos, em um só lugar.</p>
       </div>
       <div className="flex items-center gap-2">
         <button

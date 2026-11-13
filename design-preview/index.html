@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DashyLife — laboratório de design</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body data-theme="warm">
+  <div class="preview-bar"><div class="preview-title"><span class="preview-dot"></span><strong>Laboratório de design</strong><span class="preview-sub"> · Dados de demonstração</span></div><div class="theme-switch" aria-label="Escolher proposta visual"><button data-theme-choice="warm" aria-pressed="true"><span>01</span> Acolhedor</button><button data-theme-choice="minimal" aria-pressed="false"><span>02</span> Minimalista</button><button data-theme-choice="vibrant" aria-pressed="false"><span>03</span> Expressivo</button></div></div>
+  <div class="shell">
+    <aside class="sidebar"><div class="brand"><div class="brand-mark">d<span>✳</span></div><div><strong>dashylife</strong><small>seu espaço, seu ritmo</small></div></div><div class="side-label">SEU ESPAÇO</div><nav id="navigation" class="nav" aria-label="Navegação principal"></nav><div class="sidebar-bottom"><div class="side-note"><span class="side-note-icon">✳</span><strong>Um dia de cada vez.</strong><p>Um pouco de organização deixa espaço para o que importa.</p></div><div class="profile"><span class="avatar">Y</span><span><strong>Seu espaço</strong><small>Conta pessoal</small></span><span class="profile-more">···</span></div></div></aside>
+    <div class="main-wrap"><header class="topbar"><div><span class="eyebrow">SEU ESPAÇO PESSOAL</span><div class="breadcrumb">DashyLife <span>/</span> <strong id="breadcrumb">Início</strong></div></div><div class="top-actions"><span class="demo-pill"><i></i> MODO DEMONSTRAÇÃO</span><span class="top-avatar">Y</span></div></header><main id="content" tabindex="-1"></main><div class="mobile-nav" id="mobile-navigation"></div></div>
+  </div>
+  <dialog id="modal"><form method="dialog" class="modal-card"><div class="modal-head"><div><span class="eyebrow">DEMONSTRAÇÃO</span><h2 id="modal-title"></h2></div><button class="icon-btn" value="cancel" aria-label="Fechar">✕</button></div><p class="muted">Experimente o formulário. Os dados ficam somente nesta prévia.</p><div id="modal-fields"></div><div class="modal-actions"><button class="btn secondary" value="cancel">Cancelar</button><button class="btn primary" id="modal-save" value="save">Salvar na prévia <span>↗</span></button></div></form></dialog>
+  <script src="./app.js"></script>
+</body></html>

@@ -31,7 +31,7 @@ export function TodoList() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto w-full">
+      <div className="module-page max-w-6xl mx-auto w-full">
         <ListHeader onCreate={openCreateModal} />
         <LoadingState />
       </div>
@@ -40,7 +40,7 @@ export function TodoList() {
 
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto w-full">
+      <div className="module-page max-w-6xl mx-auto w-full">
         <ListHeader onCreate={openCreateModal} />
         <ErrorState message={error} onRetry={loadTodos} />
       </div>
@@ -52,7 +52,7 @@ export function TodoList() {
     : 'Nenhuma tarefa encontrada. Crie sua primeira tarefa!';
 
   return (
-    <div className="max-w-2xl mx-auto w-full">
+    <div className="module-page max-w-6xl mx-auto w-full">
       <ListHeader onCreate={openCreateModal} />
       <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Pesquisar tarefas..." />
 
@@ -90,12 +90,10 @@ export function TodoList() {
 
 function ListHeader({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:mb-8">
+    <div className="page-heading module-heading">
       <div>
-        <h3 className="font-display text-2xl font-semibold tracking-tight text-primary">Tarefas</h3>
-        <p className="mt-0.5 text-[10px] font-medium uppercase tracking-widest text-tertiary">
-          Organize seus próximos passos
-        </p>
+        <span className="concept-eyebrow">ORGANIZE SEU TEMPO</span><h1>Tarefas</h1>
+        <p>Abra espaço para o que realmente importa.</p>
       </div>
       <ActionButton onClick={onCreate}>
         <Plus size={16} />

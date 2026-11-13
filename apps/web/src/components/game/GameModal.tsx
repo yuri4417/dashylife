@@ -54,7 +54,7 @@ export function GameModal({
       </Field>
 
       <Field label="Plataforma">
-        <SelectInput value={formData.platform} onChange={(e) => onUpdateForm('platform', e.target.value)}>
+        <SelectInput value={formData.platform} label="Plataforma" onValueChange={(value) => onUpdateForm('platform', value)}>
           {visiblePlatforms.map((p) => (
             <option key={p} value={p}>
               {p}
@@ -66,7 +66,8 @@ export function GameModal({
       <Field label="Status">
         <SelectInput
           value={formData.status}
-          onChange={(e) => onUpdateForm('status', e.target.value as GameStatus)}
+          label="Status"
+          onValueChange={(value) => onUpdateForm('status', value as GameStatus)}
         >
           {GAME_STATUS_OPTIONS.map((s) => (
             <option key={s.value} value={s.value}>

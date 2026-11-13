@@ -26,18 +26,18 @@ export function TodoItem({ todo, onEdit, onComplete, onDelete }: TodoItemProps) 
           aria-label="Concluir tarefa"
         />
         <Check
-          className="pointer-events-none absolute left-0.5 top-0.5 h-3.5 w-3.5 text-white opacity-0 transition-opacity peer-checked:opacity-100"
+          className="pointer-events-none absolute left-0.5 top-0.5 h-3.5 w-3.5 text-black opacity-0 transition-opacity peer-checked:opacity-100"
           strokeWidth={3}
         />
       </div>
-      <div onClick={() => onEdit(todo)} className="min-w-0 flex-1 cursor-pointer">
-        <span className="block truncate text-sm text-primary">{todo.title}</span>
+      <button type="button" onClick={() => onEdit(todo)} className="min-w-0 flex-1 cursor-pointer text-left" aria-label={`Editar tarefa ${todo.title}`}>
+        <span className="block break-words text-sm text-primary">{todo.title}</span>
         {todo.description && (
           <span className="mt-0.5 block max-w-[200px] truncate text-xs text-tertiary">
             {todo.description}
           </span>
         )}
-      </div>
+      </button>
       {todo.dueDate && (
         <span
           className={`hidden text-xs flex-shrink-0 min-[400px]:inline ${
@@ -63,6 +63,7 @@ export function TodoItem({ todo, onEdit, onComplete, onDelete }: TodoItemProps) 
         </span>
       )}
       <button
+        aria-label={`Excluir tarefa ${todo.title}`}
         onClick={(e) => {
           e.stopPropagation();
           onDelete(todo.id);
