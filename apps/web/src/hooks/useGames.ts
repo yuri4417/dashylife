@@ -1,14 +1,13 @@
-import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
-import { Game, GameStatus } from '@dashylife/shared';
+import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
+import type { Game, GameListSettings, GameStatus } from '@dashylife/shared';
 import {
   createGame,
   deleteGame as apiDeleteGame,
-  fetchGames,
-  fetchSettings,
   updateGame,
 } from '../utils/api';
-import { DEFAULT_PLATFORMS, parseTags, serializeTags } from '../utils/gameUtils';
+import { parseTags, serializeTags } from '../utils/gameUtils';
 import { useBodyScrollLock } from './useBodyScrollLock';
+import type { Collection } from './useCollection';
 
 export interface GameFormData {
   title: string;
@@ -17,11 +16,6 @@ export interface GameFormData {
   date: string;
   description: string;
   tags: string;
-}
-
-interface LocalGameListSettings {
-  enabled: boolean;
-  platforms: { name: string; visible: boolean }[];
 }
 
 const EMPTY_FORM: GameFormData = {
@@ -35,10 +29,7 @@ const EMPTY_FORM: GameFormData = {
 
 type SortKey = keyof Game;
 
-export function useGames() {
-  const [games, setGames] = useState<Game[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function useGames({ items: games, loading, error, load: loadGames, updateItems }: Collection<Game>, settings: GameListSettings) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<GameFormData>(EMPTY_FORM);
@@ -49,10 +40,6 @@ export function useGames() {
   });
   const [platformFilter, setPlatformFilter] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<GameStatus[]>([]);
-  const [settings, setSettings] = useState<LocalGameListSettings>({
-    enabled: true,
-    platforms: DEFAULT_PLATFORMS.map((name) => ({ name, visible: true })),
-  });
   const [modalError, setModalError] = useState('');
   const [errorField, setErrorField] = useState<keyof GameFormData | null>(null);
 
@@ -65,23 +52,6 @@ export function useGames() {
     () => settings.platforms.map((p) => p.name).sort(),
     [settings.platforms],
   );
-
-  const loadGames = useCallback(async () => {
-    try {
-      setLoading(true);
-      setGames(await fetchGames());
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar jogos');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchSettings().then(setSettings).catch(() => {});
-    loadGames();
-  }, [loadGames]);
 
   useBodyScrollLock(modalOpen);
 
@@ -142,10 +112,10 @@ export function useGames() {
 
       if (isEditing && editingId) {
         const updated = await updateGame(editingId, gameData);
-        setGames((prev) => prev.map((g) => (g.id === editingId ? updated : g)));
+        updateItems((prev) => prev.map((g) => (g.id === editingId ? updated : g)));
       } else {
         const created = await createGame(gameData);
-        setGames((prev) => [created, ...prev]);
+        updateItems((prev) => [created, ...prev.filter((game) => game.id !== created.id)]);
       }
       closeModal();
     } catch (err) {
@@ -153,16 +123,16 @@ export function useGames() {
         err instanceof Error ? err.message : isEditing ? 'Erro ao atualizar jogo' : 'Erro ao criar jogo',
       );
     }
-  }, [formData, isEditing, editingId, closeModal]);
+  }, [formData, isEditing, editingId, closeModal, updateItems]);
 
   const deleteGame = useCallback(async (id: string) => {
     try {
       await apiDeleteGame(id);
-      setGames((prev) => prev.filter((g) => g.id !== id));
+      updateItems((prev) => prev.filter((g) => g.id !== id));
     } catch (err) {
       console.error('Erro ao excluir jogo:', err);
     }
-  }, []);
+  }, [updateItems]);
 
   const handleSort = useCallback((key: SortKey) => {
     setSortConfig((prev) => ({
@@ -235,7 +205,6 @@ export function useGames() {
     sortConfig,
     platformFilter,
     statusFilter,
-    settings,
     modalError,
     errorField,
     visiblePlatforms,

@@ -12,7 +12,7 @@ interface ModalProps {
 
 export function Modal({ title, onClose, children, footer, maxWidth = 'max-w-md', icon }: ModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 sm:items-center">
+    <div className="modal-backdrop fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center">
       <div
         className={`w-full ${maxWidth} max-h-[90dvh] overflow-y-auto rounded-xl border border-border-subtle bg-surface`}
         onClick={(e) => e.stopPropagation()}

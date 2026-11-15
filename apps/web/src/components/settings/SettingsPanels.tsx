@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Copy, Gamepad2, Import, KeyRound, RefreshCw, Server, ShieldCheck, ShieldOff, Upload, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Copy, Gamepad2, Import, KeyRound, RefreshCw, Server, ShieldCheck, Upload, X } from 'lucide-react';
 import type { AppSettings } from '@dashylife/shared';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
@@ -92,22 +92,23 @@ export function McpSettingsPanel() {
           <KeyRound size={18} />
         </span>
         <div className="min-w-0">
-          <h3 className="font-display text-lg font-semibold tracking-tight text-primary">Acesso MCP</h3>
-          <p className="text-xs text-tertiary">Ative a integração e acompanhe chamadas de ferramentas.</p>
+          <h3 className="font-display text-lg font-semibold tracking-tight text-primary">Acesso do MCP</h3>
+          <p className="text-xs text-tertiary">Gerencie o acesso ao servidor e consulte os registros.</p>
         </div>
       </div>
 
       {!connected ? (
-        <div className="space-y-3">
+        <div className="mcp-connection-state space-y-4">
+          <p className="mcp-status-badge" role="status"><span aria-hidden="true" /> Administração desconectada</p>
           <p className="text-sm text-tertiary">
-            Informe a chave mestre configurada no servidor como <code>DASHYLIFE_ADMIN_KEY</code>. Ela autoriza somente o gerenciamento do MCP.
+            Conecte-se usando a chave mestre configurada no servidor em <code>DASHYLIFE_ADMIN_KEY</code>. Ela permite gerenciar o MCP e consultar os registros de ações.
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="mcp-connection-form flex flex-col gap-3 sm:flex-row sm:items-end">
             <Field label="Chave mestre do servidor">
-              <TextInput type="password" autoComplete="current-password" value={adminKey} onChange={(event) => setAdminKey(event.target.value)} />
+              <TextInput type="password" autoComplete="current-password" value={adminKey} onChange={(event) => setAdminKey(event.target.value)} placeholder="Informe a chave mestre" />
             </Field>
             <Button variant="secondary" disabled={loading || !adminKey.trim()} onClick={connectAdmin}>
-              {loading ? 'Conectando…' : 'Conectar'}
+              {loading ? 'Conectando…' : 'Conectar à administração'}
             </Button>
           </div>
         </div>
@@ -115,8 +116,7 @@ export function McpSettingsPanel() {
         <>
           <div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm font-medium text-primary">
-              {enabled ? <ShieldCheck size={18} className="text-accent" /> : <ShieldOff size={18} className="text-tertiary" />}
-              MCP {enabled ? 'ativo — chave obrigatória' : 'desativado'}
+              <ShieldCheck size={18} className="text-accent" /> Administração conectada
             </div>
             <div className="flex flex-wrap gap-2">
               {!enabled ? (
@@ -136,6 +136,10 @@ export function McpSettingsPanel() {
               </Button>
             </div>
           </div>
+
+          <p className={`mcp-status-badge ${enabled ? 'is-enabled' : 'is-disabled'}`} role="status">
+            <span aria-hidden="true" /> MCP {enabled ? 'ativo. A chave MCP é obrigatória nas chamadas.' : 'desativado.'}
+          </p>
 
           {newApiKey && (
             <div className="space-y-2 rounded-lg border border-accent/30 bg-surface-active p-4">
@@ -200,6 +204,7 @@ export function McpSettingsPanel() {
 
 interface ServicesPanelProps {
   settings: AppSettings;
+  saving: boolean;
   onToggleGamelist: (enabled: boolean) => void;
   onToggleTodolist: (enabled: boolean) => void;
 }
@@ -228,7 +233,7 @@ export function ServicesPanel({ settings }: { settings: AppSettings }) {
   return null;
 }
 
-export function ServicesSettingsCard({ settings, onToggleGamelist, onToggleTodolist }: ServicesPanelProps) {
+export function ServicesSettingsCard({ settings, saving, onToggleGamelist, onToggleTodolist }: ServicesPanelProps) {
   return (
     <Card className="space-y-5">
       <div className="flex items-center gap-3">
@@ -236,19 +241,19 @@ export function ServicesSettingsCard({ settings, onToggleGamelist, onToggleTodol
           <Server size={18} />
         </span>
         <div className="min-w-0">
-          <h3 className="font-display text-lg font-semibold tracking-tight text-primary">Serviços</h3>
-          <p className="truncate text-[10px] font-medium uppercase tracking-widest text-tertiary">
-            Ative ou desative os módulos
+          <h3 className="font-display text-lg font-semibold tracking-tight text-primary">Módulos</h3>
+          <p className="truncate text-xs text-tertiary">
+            Ative os módulos que deseja usar.
           </p>
         </div>
       </div>
       <label className="flex cursor-pointer items-center gap-3">
-        <Toggle checked={settings.gamelist.enabled} onChange={(checked) => onToggleGamelist(checked)} />
-        <span className="text-sm font-medium text-tertiary">Ativar Módulo GameList</span>
+        <Toggle checked={settings.gamelist.enabled} disabled={saving} onChange={onToggleGamelist} />
+        <span className={`settings-module-label text-sm font-medium ${settings.gamelist.enabled ? 'is-enabled' : 'is-disabled'}`}>GameList</span>
       </label>
       <label className="flex cursor-pointer items-center gap-3">
-        <Toggle checked={settings.todolist.enabled} onChange={(checked) => onToggleTodolist(checked)} />
-        <span className="text-sm font-medium text-tertiary">Ativar Módulo Tarefas</span>
+        <Toggle checked={settings.todolist.enabled} disabled={saving} onChange={onToggleTodolist} />
+        <span className={`settings-module-label text-sm font-medium ${settings.todolist.enabled ? 'is-enabled' : 'is-disabled'}`}>Tarefas</span>
       </label>
     </Card>
   );
@@ -256,6 +261,7 @@ export function ServicesSettingsCard({ settings, onToggleGamelist, onToggleTodol
 
 interface GamelistSettingsPanelProps {
   settings: AppSettings;
+  saving: boolean;
   newPlatform: string;
   onNewPlatformChange: (value: string) => void;
   onAddPlatform: () => void;
@@ -266,6 +272,7 @@ interface GamelistSettingsPanelProps {
 
 export function GamelistSettingsPanel({
   settings,
+  saving,
   newPlatform,
   onNewPlatformChange,
   onAddPlatform,
@@ -300,11 +307,12 @@ export function GamelistSettingsPanel({
               key={platform.name}
               className="flex items-center gap-3 rounded-lg border border-border-subtle bg-surface px-3 py-2.5 transition-colors hover:border-border"
             >
-              <Toggle checked={platform.visible} onChange={() => onTogglePlatform(platform.name)} />
+              <Toggle checked={platform.visible} disabled={saving} onChange={() => onTogglePlatform(platform.name)} />
               <span className="min-w-0 flex-1 truncate text-sm text-primary">{platform.name}</span>
               {settings.gamelist.platforms.length > 1 && (
                 <button
                   onClick={() => onRemovePlatform(platform.name)}
+                  disabled={saving}
                   className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-surface-active hover:text-danger"
                   aria-label={`Remover ${platform.name}`}
                 >
@@ -314,7 +322,7 @@ export function GamelistSettingsPanel({
             </div>
           ))}
         </div>
-        <PlatformAddRow value={newPlatform} onChange={onNewPlatformChange} onAdd={onAddPlatform} />
+        <PlatformAddRow value={newPlatform} disabled={saving} onChange={onNewPlatformChange} onAdd={onAddPlatform} />
       </div>
 
       <div className="border-t border-border-subtle pt-6">
@@ -325,7 +333,7 @@ export function GamelistSettingsPanel({
         <p className="mb-4 text-xs text-tertiary">
           Importe jogos a partir de um arquivo JSON (formato do teste.json).
         </p>
-        <Button variant="secondary" onClick={onImportClick} className="flex items-center gap-2 px-5 py-2.5">
+        <Button variant="secondary" onClick={onImportClick} disabled={saving} className="flex items-center gap-2 px-5 py-2.5">
           <Upload size={16} />
           Importar JSON
         </Button>
@@ -336,10 +344,12 @@ export function GamelistSettingsPanel({
 
 function PlatformAddRow({
   value,
+  disabled,
   onChange,
   onAdd,
 }: {
   value: string;
+  disabled: boolean;
   onChange: (v: string) => void;
   onAdd: () => void;
 }) {
@@ -347,6 +357,7 @@ function PlatformAddRow({
     <div className="mt-4 flex flex-col gap-2 sm:flex-row">
       <TextInput
         value={value}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') onAdd();
@@ -354,7 +365,7 @@ function PlatformAddRow({
         placeholder="Nova plataforma..."
         className="flex-1 min-w-0 border-border"
       />
-      <Button variant="primary" onClick={onAdd} className="px-4 py-3">
+      <Button variant="primary" onClick={onAdd} disabled={disabled} className="px-4 py-3">
         Adicionar
       </Button>
     </div>

@@ -7,6 +7,7 @@ import { BottomNav, type MenuItem, type SectionType } from './components/layout/
 import { MobileHeader } from './components/layout/MobileHeader';
 import { Sidebar } from './components/layout/Sidebar';
 import { ImportModal, ImportReviewModal } from './components/settings/ImportModals';
+import { ErrorState, LoadingState } from './components/ui/States';
 import {
   GamelistSettingsPanel,
   McpSettingsPanel,
@@ -14,7 +15,9 @@ import {
 } from './components/settings/SettingsPanels';
 import { useAppSettings } from './hooks/useAppSettings';
 import { useBodyScrollLock } from './hooks/useBodyScrollLock';
+import { useCollection } from './hooks/useCollection';
 import { useGameImport } from './hooks/useGameImport';
+import { fetchGames, fetchTodos } from './utils/api';
 
 function App() {
   const [appearance, setAppearance] = useState<'warm' | 'minimal'>(() => localStorage.getItem('dashylife-appearance') === 'minimal' ? 'minimal' : 'warm');
@@ -29,13 +32,16 @@ function App() {
   let readableChannels = channels;
   while (luminance(readableChannels) < 0.48) readableChannels = readableChannels.map((channel) => Math.min(255, channel + 1));
   const readableAccent = `#${readableChannels.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
-  const [activeSection, setActiveSection] = useState<SectionType>('home');
+  const [selectedSection, setSelectedSection] = useState<SectionType>('home');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [newPlatform, setNewPlatform] = useState('');
   const mainRef = useRef<HTMLElement>(null);
 
   const {
     settings,
+    error: settingsError,
+    saving: savingSettings,
+    load: loadSettings,
     updateGamelistSettings,
     updateTodolistEnabled,
     togglePlatformVisibility,
@@ -43,35 +49,42 @@ function App() {
     addPlatform,
   } = useAppSettings();
 
+  const activeSection = (selectedSection === 'todo' && !settings?.todolist.enabled)
+    || (selectedSection === 'gamelist' && !settings?.gamelist.enabled) ? 'home' : selectedSection;
+
+  const todos = useCollection(fetchTodos, settings?.todolist.enabled === true, 'Não foi possível carregar as tarefas.');
+  const games = useCollection(fetchGames, settings?.gamelist.enabled === true, 'Não foi possível carregar os jogos.');
+
   const {
     importModalOpen,
     importFile,
     importErrors,
     showImportReview,
     validImports,
+    inProgress: importing,
     setImportModalOpen,
     setImportFile,
     processImport,
     applyValidImports,
     resetImport,
     closeImportModal,
-  } = useGameImport();
+  } = useGameImport(games.refresh);
 
   useBodyScrollLock(importModalOpen || showImportReview);
 
   const handleSectionChange = (section: SectionType) => {
-    setActiveSection(section);
+    setSelectedSection(section);
     mainRef.current?.scrollTo({ top: 0 });
   };
 
-  const handleAddPlatform = () => {
-    if (addPlatform(newPlatform)) setNewPlatform('');
+  const handleAddPlatform = async () => {
+    if (await addPlatform(newPlatform)) setNewPlatform('');
   };
 
   const menuItems: MenuItem[] = [
     { id: 'home', label: 'Home', Icon: Home },
-    ...(settings.todolist.enabled ? [{ id: 'todo' as SectionType, label: 'Tarefas', Icon: ClipboardList }] : []),
-    ...(settings.gamelist.enabled ? [{ id: 'gamelist' as SectionType, label: 'GameList', Icon: Gamepad2 }] : []),
+    ...(settings?.todolist.enabled ? [{ id: 'todo' as SectionType, label: 'Tarefas', Icon: ClipboardList }] : []),
+    ...(settings?.gamelist.enabled ? [{ id: 'gamelist' as SectionType, label: 'GameList', Icon: Gamepad2 }] : []),
     { id: 'settings', label: 'Configurações', Icon: Settings },
   ];
 
@@ -90,10 +103,12 @@ function App() {
       <main ref={mainRef} className="flex-1 flex flex-col min-w-0 min-h-0 overflow-y-auto pb-24 md:pb-0">
         <header className="concept-topbar"><div><span className="concept-eyebrow">SEU ESPAÇO PESSOAL</span><p>DashyLife <span>/</span> <strong>{menuItems.find(item => item.id === activeSection)?.label}</strong></p></div></header>
         <div className="concept-content" key={activeSection}>
-          {activeSection === 'home' && <Dashboard settings={settings} onNavigate={handleSectionChange} />}
+          {activeSection === 'home' && (
+            <Dashboard settings={settings} settingsError={settingsError} loadSettings={loadSettings} todos={todos} games={games} onNavigate={handleSectionChange} />
+          )}
 
-          {activeSection === 'todo' && <TodoList />}
-          {activeSection === 'gamelist' && <GameList />}
+          {activeSection === 'todo' && settings?.todolist.enabled && <TodoList collection={todos} />}
+          {activeSection === 'gamelist' && settings?.gamelist.enabled && <GameList collection={games} settings={settings.gamelist} />}
 
           {activeSection === 'settings' && (
             <div className="settings-page mx-auto max-w-6xl"><div className="page-heading"><div><span className="concept-eyebrow">DEIXE COM A SUA CARA</span><h1>Configurações</h1><p>Ajuste seu espaço do seu jeito.</p></div></div>
@@ -112,25 +127,29 @@ function App() {
                   </label>
                 </section>
                 <McpSettingsPanel />
-                <ServicesSettingsCard
-                  settings={settings}
-                  onToggleGamelist={(enabled) =>
-                    updateGamelistSettings((prev) => ({ ...prev, enabled }))
-                  }
-                  onToggleTodolist={updateTodolistEnabled}
-                />
+                {settings ? (
+                  <>
+                    <ServicesSettingsCard
+                      settings={settings}
+                      saving={savingSettings}
+                      onToggleGamelist={(enabled) => void updateGamelistSettings((prev) => ({ ...prev, enabled }))}
+                      onToggleTodolist={updateTodolistEnabled}
+                    />
 
-                {settings.gamelist.enabled && (
-                  <GamelistSettingsPanel
-                    settings={settings}
-                    newPlatform={newPlatform}
-                    onNewPlatformChange={setNewPlatform}
-                    onAddPlatform={handleAddPlatform}
-                    onTogglePlatform={togglePlatformVisibility}
-                    onRemovePlatform={removePlatform}
-                    onImportClick={() => setImportModalOpen(true)}
-                  />
-                )}
+                    {settings.gamelist.enabled && (
+                      <GamelistSettingsPanel
+                        settings={settings}
+                        saving={savingSettings}
+                        newPlatform={newPlatform}
+                        onNewPlatformChange={setNewPlatform}
+                        onAddPlatform={handleAddPlatform}
+                        onTogglePlatform={togglePlatformVisibility}
+                        onRemovePlatform={removePlatform}
+                        onImportClick={() => setImportModalOpen(true)}
+                      />
+                    )}
+                  </>
+                ) : settingsError ? <ErrorState message={settingsError} onRetry={loadSettings} /> : <LoadingState />}
               </div>
             </div>
           )}
@@ -142,6 +161,7 @@ function App() {
       {importModalOpen && (
         <ImportModal
           file={importFile}
+          inProgress={importing}
           onFileChange={setImportFile}
           onClose={closeImportModal}
           onProcess={processImport}
@@ -149,7 +169,7 @@ function App() {
       )}
 
       {showImportReview && (
-        <ImportReviewModal errors={importErrors} validImports={validImports} onClose={resetImport} onApply={applyValidImports} />
+        <ImportReviewModal errors={importErrors} validImports={validImports} inProgress={importing} onClose={resetImport} onApply={applyValidImports} />
       )}
     </div>
   );

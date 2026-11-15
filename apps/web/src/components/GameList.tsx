@@ -1,4 +1,6 @@
 import { Download, Plus } from 'lucide-react';
+import type { Game, GameListSettings } from '@dashylife/shared';
+import type { Collection } from '../hooks/useCollection';
 import { useGames } from '../hooks/useGames';
 import { Button } from './ui/Button';
 import { SearchInput } from './ui/SearchInput';
@@ -7,7 +9,7 @@ import { GameFilters } from './game/GameFilters';
 import { GameModal } from './game/GameModal';
 import { GameTable } from './game/GameTable';
 
-export function GameList() {
+export function GameList({ collection, settings }: { collection: Collection<Game>; settings: GameListSettings }) {
   const {
     loading,
     error,
@@ -18,7 +20,6 @@ export function GameList() {
     sortConfig,
     platformFilter,
     statusFilter,
-    settings,
     modalError,
     errorField,
     visiblePlatforms,
@@ -36,9 +37,7 @@ export function GameList() {
     handlePlatformFilterChange,
     handleStatusFilterChange,
     handleExportFilteredJSON,
-  } = useGames();
-
-  if (!settings.enabled) return null;
+  } = useGames(collection, settings);
 
   if (loading) {
     return (
@@ -49,7 +48,7 @@ export function GameList() {
     );
   }
 
-  if (error) {
+  if (error && collection.items.length === 0) {
     return (
       <div className="module-page max-w-6xl mx-auto w-full">
         <ListHeader onCreate={openCreateModal} onExport={handleExportFilteredJSON} />
@@ -68,6 +67,7 @@ export function GameList() {
         onChange={setSearchQuery}
         placeholder="Pesquisar jogos pelo título..."
       />
+      {error && <ErrorState message={error} onRetry={loadGames} />}
       <GameFilters
         allPlatforms={allPlatforms}
         platformFilter={platformFilter}

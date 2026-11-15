@@ -32,6 +32,11 @@ export interface UpdateTodoInput {
   repetition?: Repetition;
 }
 
+export interface TodoCompletionResult {
+  updated: Todo;
+  next?: Todo;
+}
+
 export type GameStatus = 'nao-jogado' | 'jogando' | 'zerado' | 'droppado';
 export type GamePlatform = string;
 
@@ -55,6 +60,15 @@ export interface CreateGameInput {
   description?: string;
   tags?: string[];
 }
+
+export interface GameImportItem {
+  requestId: string;
+  game: CreateGameInput;
+}
+
+export type GameImportResult =
+  | { requestId: string; gameId: string }
+  | { requestId: string; error: string };
 
 export interface UpdateGameInput {
   title?: string;

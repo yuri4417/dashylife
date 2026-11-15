@@ -1,4 +1,4 @@
-import { Todo, Repetition, Game, GameListSettings } from '@dashylife/shared';
+import type { AppSettings, Game, GameImportItem, GameImportResult, Repetition, Todo, TodoCompletionResult, UpdateTodoInput } from '@dashylife/shared';
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || '/api';
 
@@ -56,7 +56,7 @@ export async function fetchMcpActionLogs(adminKey: string, offset: number, limit
 }
 
 export async function fetchTodos(): Promise<Todo[]> {
-  const res = await apiFetch('/todos');
+  const res = await apiFetch('/todos', { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch todos');
   return res.json();
 }
@@ -71,14 +71,15 @@ export async function createTodo(input: { title: string; description?: string; d
   return res.json();
 }
 
-export async function updateTodo(id: string, input: { title?: string; description?: string; completed?: boolean; dueDate?: string; repetition?: Repetition }): Promise<Todo> {
+export async function updateTodo(id: string, input: Omit<UpdateTodoInput, 'id'>): Promise<TodoCompletionResult> {
   const res = await apiFetch(`/todos/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
-  if (!res.ok) throw new Error('Failed to update todo');
-  return res.json();
+  if (!res.ok) throw new Error('Não foi possível atualizar a tarefa.');
+  const result: Todo | TodoCompletionResult = await res.json();
+  return 'updated' in result ? result : { updated: result };
 }
 
 export async function deleteTodo(id: string): Promise<void> {
@@ -87,7 +88,7 @@ export async function deleteTodo(id: string): Promise<void> {
 }
 
 export async function fetchGames(): Promise<Game[]> {
-  const res = await apiFetch('/games');
+  const res = await apiFetch('/games', { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch games');
   return res.json();
 }
@@ -100,6 +101,17 @@ export async function createGame(input: { title: string; platform: string; statu
   });
   if (!res.ok) throw new Error('Failed to create game');
   return res.json();
+}
+
+export async function importGames(items: GameImportItem[]): Promise<GameImportResult[]> {
+  const res = await apiFetch('/games/import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(items),
+  });
+  if (!res.ok) throw new Error(`Falha ao importar jogos (HTTP ${res.status}).`);
+  const { results }: { results: GameImportResult[] } = await res.json();
+  return results;
 }
 
 export async function updateGame(id: string, input: { title?: string; platform?: string; status?: string; date?: string; description?: string; tags?: string[] }): Promise<Game> {
@@ -117,18 +129,18 @@ export async function deleteGame(id: string): Promise<void> {
   if (!res.ok) throw new Error('Failed to delete game');
 }
 
-export async function fetchSettings(): Promise<GameListSettings> {
-  const res = await apiFetch('/settings');
-  if (!res.ok) throw new Error('Failed to fetch settings');
+export async function fetchSettings(): Promise<AppSettings> {
+  const res = await apiFetch('/app-settings', { cache: 'no-store' });
+  if (!res.ok) throw new Error('Não foi possível carregar as configurações dos módulos.');
   return res.json();
 }
 
-export async function updateSettings(settings: GameListSettings): Promise<GameListSettings> {
-  const res = await apiFetch('/settings', {
-    method: 'PUT',
+export async function updateSettings(settings: Partial<AppSettings>): Promise<AppSettings> {
+  const res = await apiFetch('/app-settings', {
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(settings),
   });
-  if (!res.ok) throw new Error('Failed to update settings');
+  if (!res.ok) throw new Error('Não foi possível salvar as configurações dos módulos.');
   return res.json();
 }

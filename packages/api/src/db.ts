@@ -50,6 +50,13 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS game_import_items (
+    request_id TEXT PRIMARY KEY,
+    game_id TEXT NOT NULL
+  )
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL DEFAULT '{}',
@@ -288,6 +295,18 @@ export function createGame(game: Omit<Game, 'id'>): Game {
   return { ...game, id, createdAt: game.createdAt || now, updatedAt: game.updatedAt || now };
 }
 
+const getImportReceipt = db.prepare('SELECT game_id FROM game_import_items WHERE request_id = ?');
+const saveImportReceipt = db.prepare('INSERT INTO game_import_items (request_id, game_id) VALUES (?, ?)');
+
+export const createImportedGame = db.transaction((requestId: string, game: Omit<Game, 'id'>): string => {
+  const receipt = getImportReceipt.get(requestId) as { game_id: string } | undefined;
+  if (receipt) return receipt.game_id;
+
+  const created = createGame(game);
+  saveImportReceipt.run(requestId, created.id);
+  return created.id;
+});
+
 export function updateGame(id: string, updates: Partial<Pick<Game, 'title' | 'platform' | 'status' | 'date' | 'description' | 'tags'>>): Game | undefined {
   const existing = getGameById(id);
   if (!existing) return undefined;
@@ -337,25 +356,18 @@ export function deleteGame(id: string): boolean {
   return result.changes > 0;
 }
 
-export type AppSetting = { enabled: boolean; platforms: { name: string; visible: boolean }[] };
-
-export function getSetting(key: string): AppSetting | undefined {
-  const stmt = db.prepare('SELECT * FROM settings WHERE key = ?');
-  const row = stmt.get(key) as { key: string; value: string; updated_at: string } | undefined;
+export function getSetting<T>(key: string): T | undefined {
+  const stmt = db.prepare('SELECT value FROM settings WHERE key = ?');
+  const row = stmt.get(key) as { value: string } | undefined;
   if (!row) return undefined;
   return JSON.parse(row.value);
 }
 
 export function upsertSetting(key: string, value: unknown): void {
-  const now = new Date().toISOString();
-  const existing = getSetting(key);
-  if (existing) {
-    const stmt = db.prepare('UPDATE settings SET value = ?, updated_at = ? WHERE key = ?');
-    stmt.run(JSON.stringify(value), now, key);
-  } else {
-    const stmt = db.prepare('INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)');
-    stmt.run(key, JSON.stringify(value), now);
-  }
+  db.prepare(`
+    INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+  `).run(key, JSON.stringify(value), new Date().toISOString());
 }
 
 export interface McpControlSettings {
@@ -384,15 +396,18 @@ export function saveMcpControlSettings(value: McpControlSettings): void {
   upsertSetting('mcp-control', value);
 }
 
-export function addMcpActionLog(entry: Omit<McpActionLog, 'id'>): void {
-  db.prepare(
-    'INSERT INTO mcp_action_logs (created_at, tool, status, duration_ms, error) VALUES (?, ?, ?, ?, ?)'
-  ).run(entry.createdAt, entry.tool, entry.status, entry.durationMs, entry.error);
-  db.prepare(`
-    DELETE FROM mcp_action_logs
-    WHERE id NOT IN (SELECT id FROM mcp_action_logs ORDER BY id DESC LIMIT 10000)
-  `).run();
-}
+const insertMcpActionLog = db.prepare(
+  'INSERT INTO mcp_action_logs (created_at, tool, status, duration_ms, error) VALUES (?, ?, ?, ?, ?)'
+);
+const pruneMcpActionLogs = db.prepare(`
+  DELETE FROM mcp_action_logs
+  WHERE id < (SELECT id FROM mcp_action_logs ORDER BY id DESC LIMIT 1 OFFSET 9999)
+`);
+
+export const addMcpActionLog = db.transaction((entry: Omit<McpActionLog, 'id'>) => {
+  insertMcpActionLog.run(entry.createdAt, entry.tool, entry.status, entry.durationMs, entry.error);
+  pruneMcpActionLogs.run();
+});
 
 export function listMcpActionLogs(limit: number, offset: number): { items: McpActionLog[]; total: number } {
   const count = db.prepare('SELECT COUNT(*) AS total FROM mcp_action_logs').get() as { total: number };

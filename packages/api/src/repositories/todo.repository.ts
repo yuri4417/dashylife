@@ -1,4 +1,4 @@
-import { Todo, Repetition } from '@dashylife/shared';
+import type { CreateTodoInput, Repetition, Todo, TodoCompletionResult, UpdateTodoInput } from '@dashylife/shared';
 import {
   getAllTodos,
   getTodoById,
@@ -23,16 +23,42 @@ function calculateNextDueDate(dueDate: string, repetition: Repetition): string {
   return current.toISOString();
 }
 
+type TodoUpdate = Omit<UpdateTodoInput, 'id'>;
+
+const updateCompletion = db.transaction((id: string, { completed, ...changes }: TodoUpdate): Todo | TodoCompletionResult | undefined => {
+  const current = getTodoById(id);
+  if (!current) return undefined;
+
+  const hasChanges = Object.values(changes).some((value) => value !== undefined);
+  const updated = current.completed === completed && !hasChanges
+    ? current
+    : dbUpdateTodo(id, { ...changes, completed });
+  if (!updated) return undefined;
+
+  if (!current.repetition && !updated.repetition) return updated;
+  if (current.completed || !updated.completed || !updated.repetition || !updated.dueDate) {
+    return { updated };
+  }
+
+  const now = new Date().toISOString();
+  const next = dbCreateTodo({
+    title: updated.title,
+    description: updated.description,
+    completed: false,
+    dueDate: calculateNextDueDate(updated.dueDate, updated.repetition),
+    repetition: updated.repetition,
+    createdAt: now,
+    updatedAt: now,
+  });
+  return { updated, next };
+});
+
 export class TodoRepository {
   findAll(): Todo[] {
     return getAllTodos();
   }
 
-  findById(id: string): Todo | undefined {
-    return getTodoById(id);
-  }
-
-  create(input: { title: string; description?: string; dueDate?: string; repetition?: Repetition }): Todo {
+  create(input: CreateTodoInput): Todo {
     const now = new Date().toISOString();
     const todo: Omit<Todo, 'id'> = {
       title: input.title,
@@ -46,56 +72,12 @@ export class TodoRepository {
     return dbCreateTodo(todo);
   }
 
-  update(id: string, input: { title?: string; description?: string; completed?: boolean; dueDate?: string; repetition?: Repetition }): Todo | undefined {
-    return dbUpdateTodo(id, input);
+  update(id: string, input: TodoUpdate): Todo | TodoCompletionResult | undefined {
+    return input.completed === undefined ? dbUpdateTodo(id, input) : updateCompletion(id, input);
   }
 
   delete(id: string): boolean {
     return dbDeleteTodo(id);
   }
 
-  toggleWithRepetition(id: string): { updated: Todo; next?: Todo } | undefined {
-    const existing = getTodoById(id);
-    if (!existing) return undefined;
-
-    const updated = dbUpdateTodo(id, { completed: !existing.completed });
-    if (!updated) return undefined;
-
-    let nextTodo: Todo | undefined;
-
-    if (updated.completed && existing.repetition && existing.dueDate) {
-      const nextDueDate = calculateNextDueDate(existing.dueDate, existing.repetition);
-      const now = new Date().toISOString();
-      const nextId = crypto.randomUUID();
-
-      const stmt = db.prepare(
-        `INSERT INTO todos (id, title, description, completed, due_date, repetition_type, repetition_interval, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      );
-      stmt.run(
-        nextId,
-        existing.title,
-        existing.description || null,
-        0,
-        nextDueDate,
-        existing.repetition.type || null,
-        existing.repetition.interval || null,
-        now,
-        now
-      );
-
-      nextTodo = {
-        id: nextId,
-        title: existing.title,
-        description: existing.description || undefined,
-        completed: false,
-        dueDate: nextDueDate,
-        repetition: existing.repetition,
-        createdAt: now,
-        updatedAt: now,
-      };
-    }
-
-    return { updated, next: nextTodo };
-  }
 }

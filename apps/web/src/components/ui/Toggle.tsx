@@ -14,7 +14,7 @@ export function Toggle({ checked, onChange, disabled = false, className = '' }: 
         aria-checked={checked}
         aria-disabled
         tabIndex={-1}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg ${
+        className={`app-toggle relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg ${
           checked ? 'bg-accent' : 'bg-border'
         } opacity-50 cursor-not-allowed ${className}`}
       >
@@ -44,7 +44,7 @@ export function Toggle({ checked, onChange, disabled = false, className = '' }: 
       aria-checked={checked}
       onClick={toggle}
       onKeyDown={handleKeyDown}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg ${
+      className={`app-toggle relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg ${
         checked ? 'bg-accent' : 'bg-border'
       } cursor-pointer ${className}`}
     >

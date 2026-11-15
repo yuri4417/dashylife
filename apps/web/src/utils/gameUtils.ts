@@ -1,7 +1,5 @@
 import { GameStatus, GameStatusOption } from '@dashylife/shared';
 
-export const DEFAULT_PLATFORMS = ['EA App', 'Epic Games', 'GOG', 'Steam', 'Ubisoft Connect'];
-
 export const GAME_STATUS_OPTIONS: GameStatusOption[] = [
   { value: 'nao-jogado', label: 'Não jogado' },
   { value: 'jogando', label: 'Jogando' },

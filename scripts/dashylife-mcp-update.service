@@ -1,0 +1,7 @@
+[Unit]
+Description=Synchronize DashyLife MCP from deployed checkout
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/share/dashylife-tunnel/update-mcp-vm.sh

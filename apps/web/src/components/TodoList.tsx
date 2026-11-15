@@ -1,4 +1,6 @@
 import { Plus } from 'lucide-react';
+import type { Todo } from '@dashylife/shared';
+import type { Collection } from '../hooks/useCollection';
 import { useTodos } from '../hooks/useTodos';
 import { ActionButton } from './ui/Button';
 import { SearchInput } from './ui/SearchInput';
@@ -6,10 +8,11 @@ import { EmptyState, ErrorState, LoadingState } from './ui/States';
 import { TodoGroup } from './todo/TodoGroup';
 import { TodoModal } from './todo/TodoModal';
 
-export function TodoList() {
+export function TodoList({ collection }: { collection: Collection<Todo> }) {
   const {
     loading,
     error,
+    mutationError,
     modalOpen,
     isEditing,
     formData,
@@ -27,7 +30,7 @@ export function TodoList() {
     saveTodo,
     completeTodo,
     deleteTodo,
-  } = useTodos();
+  } = useTodos(collection);
 
   if (loading) {
     return (
@@ -38,7 +41,7 @@ export function TodoList() {
     );
   }
 
-  if (error) {
+  if (error && collection.items.length === 0) {
     return (
       <div className="module-page max-w-6xl mx-auto w-full">
         <ListHeader onCreate={openCreateModal} />
@@ -55,6 +58,8 @@ export function TodoList() {
     <div className="module-page max-w-6xl mx-auto w-full">
       <ListHeader onCreate={openCreateModal} />
       <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Pesquisar tarefas..." />
+      {error && <ErrorState message={error} onRetry={loadTodos} />}
+      {mutationError && <p role="alert" className="text-sm text-danger">{mutationError}</p>}
 
       {groupedTodos.length === 0 ? (
         <EmptyState message={emptyMessage} />

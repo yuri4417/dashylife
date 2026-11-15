@@ -3,14 +3,14 @@
   "name": "dashylife",
   "version": "0.2.0",
   "description": "Acesse e gerencie tarefas e jogos do DashyLife hospedado na sua rede local.",
-  "author": { "name": "Yuri Henrique", "email": "yreis188@gmail.com" },
+  "author": { "name": "DashyLife" },
   "extensions": {
     "com.openai": {
       "interface": {
         "displayName": "DashyLife",
         "shortDescription": "Tarefas e jogos pessoais",
         "longDescription": "Conecta ao servidor DashyLife informado em DASHYLIFE_URL. Requer uma chave MCP criada em Configurações e pode rodar em qualquer host MCP local com acesso à rede do homelab.",
-        "developerName": "Yuri Henrique",
+        "developerName": "DashyLife",
         "category": "Productivity",
         "capabilities": ["Interactive"],
         "defaultPrompt": "Consulte e organize minhas tarefas e minha biblioteca de jogos no DashyLife."

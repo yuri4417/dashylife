@@ -1,18 +1,18 @@
 import { useRef } from 'react';
 import { FileJson, Upload, X } from 'lucide-react';
-import type { Game } from '@dashylife/shared';
-import type { ImportError } from '../../hooks/useGameImport';
+import type { ImportError, ReviewedGame } from '../../hooks/useGameImport';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 
 interface ImportModalProps {
   file: File | null;
+  inProgress: boolean;
   onFileChange: (file: File | null) => void;
   onClose: () => void;
   onProcess: () => void;
 }
 
-export function ImportModal({ file, onFileChange, onClose, onProcess }: ImportModalProps) {
+export function ImportModal({ file, inProgress, onFileChange, onClose, onProcess }: ImportModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const clearFile = () => {
@@ -27,11 +27,11 @@ export function ImportModal({ file, onFileChange, onClose, onProcess }: ImportMo
       icon={<FileJson size={20} className="text-accent" />}
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} disabled={inProgress}>
             Cancelar
           </Button>
-          <Button variant="primary" onClick={onProcess} disabled={!file} className="flex items-center gap-2">
-            <Upload size={16} /> Processar
+          <Button variant="primary" onClick={onProcess} disabled={!file || inProgress} className="flex items-center gap-2">
+            <Upload size={16} /> {inProgress ? 'Processando…' : 'Processar'}
           </Button>
         </>
       }
@@ -42,6 +42,7 @@ export function ImportModal({ file, onFileChange, onClose, onProcess }: ImportMo
           ref={fileInputRef}
           type="file"
           accept=".json"
+          disabled={inProgress}
           onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
           className="hidden"
           id="import-json-file"
@@ -63,6 +64,7 @@ export function ImportModal({ file, onFileChange, onClose, onProcess }: ImportMo
             </span>
             <button
               type="button"
+              disabled={inProgress}
               onClick={clearFile}
               className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-surface-active hover:text-danger"
             >
@@ -80,12 +82,13 @@ export function ImportModal({ file, onFileChange, onClose, onProcess }: ImportMo
 
 interface ImportReviewModalProps {
   errors: ImportError[];
-  validImports: Game[];
+  validImports: ReviewedGame[];
+  inProgress: boolean;
   onClose: () => void;
   onApply: () => void;
 }
 
-export function ImportReviewModal({ errors, validImports, onClose, onApply }: ImportReviewModalProps) {
+export function ImportReviewModal({ errors, validImports, inProgress, onClose, onApply }: ImportReviewModalProps) {
   return (
     <Modal
       title="Revisar Importação"
@@ -93,11 +96,11 @@ export function ImportReviewModal({ errors, validImports, onClose, onApply }: Im
       maxWidth="max-w-2xl"
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
-            Ignorar tudo
+          <Button variant="ghost" onClick={onClose} disabled={inProgress}>
+            Fechar
           </Button>
-          <Button variant="primary" onClick={onApply} disabled={validImports.length === 0}>
-            Importar válidos ({validImports.length})
+          <Button variant="primary" onClick={onApply} disabled={inProgress || validImports.length === 0}>
+            {inProgress ? 'Importando…' : `Importar pendentes (${validImports.length})`}
           </Button>
         </>
       }
@@ -121,12 +124,12 @@ export function ImportReviewModal({ errors, validImports, onClose, onApply }: Im
       {validImports.length > 0 && (
         <div className="mb-5 rounded-lg border border-green-500/20 bg-green-500/5 p-4">
           <h4 className="mb-2 text-sm font-medium text-green-400">
-            Itens válidos ({validImports.length})
+            Prontos para importar ({validImports.length})
           </h4>
           <ul className="max-h-40 space-y-1 overflow-y-auto">
-            {validImports.map((g) => (
-              <li key={g.id} className="text-xs text-primary">
-                {g.title} ({g.platform}) - {g.status}
+            {validImports.map(({ game, requestId }) => (
+              <li key={requestId} className="text-xs text-primary">
+                {game.title} ({game.platform}) - {game.status}
               </li>
             ))}
           </ul>
