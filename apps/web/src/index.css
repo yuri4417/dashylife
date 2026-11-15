@@ -91,6 +91,17 @@ button {
 .app-shell[data-appearance='minimal'] { --color-bg:#111214; --color-surface:#191b1e; --color-surface-active:#292c2d; --color-border:#303237; --color-border-subtle:#303237; --color-accent:#e4e6e4; --color-accent-hover:#fff; --color-action:#e4e6e4; --color-action-text:#171819; background:var(--color-bg); }
 .appearance-option[aria-pressed='true'] { background:var(--color-accent); color:var(--color-action-text); border-color:var(--color-accent); }
 .app-shell button,.app-shell input,.app-shell select { transition:background-color .2s,color .2s,border-color .2s,transform .2s; }
+.app-toggle { background-color:var(--color-border); }
+.app-toggle[aria-checked='true'] { background-color:var(--color-accent); }
+.app-toggle:disabled,.app-toggle[aria-disabled='true'] { opacity:.5;cursor:not-allowed; }
+.app-toggle > span { flex:none; }
+.modal-backdrop { background-color:rgb(0 0 0 / 70%); }
+.settings-module-label.is-enabled { color:var(--color-primary); }
+.settings-module-label.is-disabled { color:var(--color-tertiary); }
+.mcp-status-badge { display:inline-flex;align-items:center;gap:8px;width:fit-content;border:1px solid var(--color-border);border-radius:999px;padding:5px 10px;color:var(--color-tertiary);font-size:12px; }
+.mcp-status-badge > span { width:8px;height:8px;border-radius:50%;background:currentColor; }
+.mcp-status-badge.is-enabled { color:var(--color-accent); }
+.mcp-connection-form > label { flex:1; }
 .app-shell button:active { transform:scale(.97); }
 @keyframes app-entrance { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
 .app-shell main > div { animation:app-entrance .22s ease-out; }
