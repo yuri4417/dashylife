@@ -47,7 +47,7 @@ export function Routine({ collection }: { collection: Collection<Todo> }) {
   const [loading, setLoading] = useState(true);
   const loadVersion = useRef(0);
   const [gridStart, gridEnd] = visibleRange(date, view);
-  const start = dateString(gridStart), end = dateString(gridEnd);
+  const start = dateString(new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() - 1)), end = dateString(gridEnd);
   const load = useCallback(async () => {
     const version = ++loadVersion.current;
     try { setError(''); const [a, c] = await Promise.all([request<Activity[]>(`/activities?start=${start}&end=${end}`), request<Category[]>('/categories')]); if (version === loadVersion.current) { setActivities(a); setCategories(c); } }
@@ -59,7 +59,7 @@ export function Routine({ collection }: { collection: Collection<Todo> }) {
   const save = async () => {
     if (!form) return;
     if (!form.title.trim() || !form.startDate) { setError('Informe o título e a data da atividade.'); return; }
-    if (!!form.startTime !== !!form.endTime || (form.startTime && form.endTime <= form.startTime)) { setError('Informe horários de início e fim válidos.'); return; }
+    if (!!form.startTime !== !!form.endTime || (form.startTime && form.endTime === form.startTime)) { setError('Informe horários de início e fim válidos e diferentes.'); return; }
     try {
       if (editing && editScope === 'occurrence') {
         const changes: Record<string, unknown> = {};
@@ -97,7 +97,7 @@ export function Routine({ collection }: { collection: Collection<Todo> }) {
       <Field label="Categoria"><SelectInput label="Categoria da atividade" value={form.categoryId} onValueChange={value => update('categoryId', value)}><option value=""><span className="category-option"><span className="category-swatch is-empty"/>Sem categoria</span></option>{categories.map(c => <option value={c.id} key={c.id}><span className="category-option"><span className="category-swatch" style={{ backgroundColor: c.color }}/>{c.name}</span></option>)}</SelectInput></Field>
       <Field label="Data"><DateInput label="Data da atividade" value={form.startDate} onChange={value => update('startDate', value)} /></Field>
       <div className="time-fields grid grid-cols-2 gap-3"><Field label="Início (opcional)"><TimeInput label="Início da atividade" value={form.startTime} onChange={value => update('startTime', value)}/></Field><Field label="Fim (opcional)"><TimeInput label="Fim da atividade" value={form.endTime} onChange={value => update('endTime', value)}/></Field></div>
-      <p className="text-xs text-tertiary">Sem horários, a atividade ocupa o dia inteiro.</p>
+      <p className="text-xs text-tertiary">Sem horários, a atividade ocupa o dia inteiro. Para terminar no dia seguinte, informe um horário final anterior ao início.</p>
       {editScope !== 'occurrence' && <RepeatInput label="Repetir atividade" enabled={!!form.frequency} onToggle={enabled => update('frequency', enabled ? 'daily' : '')} interval={form.interval} onIntervalChange={value => update('interval', value)} unit={form.frequency || 'daily'} onUnitChange={value => update('frequency', value)} options={[{ value: 'daily', label: 'Dias' }, { value: 'weekly', label: 'Semanas' }, { value: 'monthly', label: 'Meses' }]} />}
       {editScope !== 'occurrence' && form.frequency === 'weekly' && <WeekdayPicker value={form.weekdays} onChange={days => setForm(current => current && ({ ...current, weekdays: days }))} />}
       {editScope !== 'occurrence' && form.frequency && <Field label="Repetir até (opcional)"><DateInput label="Repetir até" value={form.endDate} onChange={value => update('endDate', value)} /></Field>}

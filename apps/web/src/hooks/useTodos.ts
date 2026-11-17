@@ -100,7 +100,7 @@ export function useTodos({ items: todos, loading, error, load: loadTodos, update
       return;
     }
 
-    if (!!formData.startTime !== !!formData.endTime || (formData.startTime && formData.endTime <= formData.startTime)) {
+    if (!!formData.startTime !== !!formData.endTime || (formData.startTime && formData.endTime === formData.startTime)) {
       setModalError('Informe horários de início e fim válidos.');
       setErrorField('startTime');
       return;

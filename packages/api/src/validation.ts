@@ -10,7 +10,7 @@ export function validateTimeRange(startTime: unknown, endTime: unknown): void {
   const startEmpty = startTime === undefined || startTime === null;
   const endEmpty = endTime === undefined || endTime === null;
   if (startEmpty && endEmpty) return;
-  if (!valid(startTime) || !valid(endTime) || (startTime as string) >= (endTime as string)) {
-    throw new ApiError(400, 'Informe horários de início e fim válidos, com o fim após o início.');
+  if (!valid(startTime) || !valid(endTime) || (startTime as string) === (endTime as string)) {
+    throw new ApiError(400, 'Informe horários de início e fim válidos e diferentes.');
   }
 }

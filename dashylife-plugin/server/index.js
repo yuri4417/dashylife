@@ -67,7 +67,7 @@ function createServer() {
     description: z.string().optional(),
     dueDate: z.string().optional().describe('Data da tarefa; obrigatória quando dias da semana são selecionados.'),
     startTime: time.optional().describe('Horário inicial HH:mm; informe junto com endTime. Sem horários, a tarefa ocupa o dia inteiro.'),
-    endTime: time.optional().describe('Horário final HH:mm, posterior a startTime.'),
+    endTime: time.optional().describe('Horário final HH:mm; se for menor que startTime, termina no dia seguinte. Não pode ser igual a startTime.'),
     repetition: taskRepetition.optional(),
   }));
   register('update_todo', 'Atualiza uma tarefa pelo ID.', z.object({
@@ -77,7 +77,7 @@ function createServer() {
     completed: z.boolean().optional(),
     dueDate: z.string().optional(),
     startTime: time.nullable().optional().describe('Horário inicial HH:mm; use null nos dois horários para removê-los.'),
-    endTime: time.nullable().optional().describe('Horário final HH:mm; use null nos dois horários para removê-los.'),
+    endTime: time.nullable().optional().describe('Horário final HH:mm; se for menor que startTime, termina no dia seguinte. Use null nos dois horários para removê-los.'),
     repetition: taskRepetition.nullable().optional().describe('Use null para remover a repetição.'),
   }));
   register('delete_todo', 'Remove uma tarefa pelo ID.', z.object({ id: z.string().min(1) }));
@@ -104,7 +104,7 @@ function createServer() {
     categoryId: z.string().min(1).optional(),
     startDate: date.describe('Data da primeira ocorrência no formato AAAA-MM-DD.'),
     startTime: time.optional().describe('Horário inicial HH:mm; informe junto com endTime. Sem horários, a atividade ocupa o dia inteiro.'),
-    endTime: time.optional().describe('Horário final HH:mm, posterior a startTime.'),
+    endTime: time.optional().describe('Horário final HH:mm; se for menor que startTime, termina no dia seguinte. Não pode ser igual a startTime.'),
     recurrence: recurrence.nullable().optional().describe('Omitir ou usar null para uma atividade única.'),
   }));
   register('update_routine_activity', 'Atualiza uma atividade pelo ID; a alteração afeta a série inteira.', z.object({
@@ -114,7 +114,7 @@ function createServer() {
     categoryId: z.string().min(1).nullable().optional().describe('Use null para remover a categoria.'),
     startDate: date.optional().describe('Data da primeira ocorrência no formato AAAA-MM-DD.'),
     startTime: time.nullable().optional().describe('Horário inicial HH:mm; use null nos dois horários para removê-los.'),
-    endTime: time.nullable().optional().describe('Horário final HH:mm; use null nos dois horários para removê-los.'),
+    endTime: time.nullable().optional().describe('Horário final HH:mm; se for menor que startTime, termina no dia seguinte. Use null nos dois horários para removê-los.'),
     recurrence: recurrence.nullable().optional().describe('Use null para tornar a atividade única.'),
   }));
   register('update_routine_occurrence', 'Edita ou reagenda uma ocorrência sem alterar a série. Use originalDate retornada pela listagem, mesmo após reagendar.', z.object({
@@ -125,7 +125,7 @@ function createServer() {
     description: z.string().nullable().optional().describe('Use null para limpar a descrição.'),
     categoryId: z.string().min(1).nullable().optional().describe('Use null para remover a categoria.'),
     startTime: time.nullable().optional().describe('Horário inicial HH:mm; use null junto com endTime para limpar.'),
-    endTime: time.nullable().optional().describe('Horário final HH:mm; use null junto com startTime para limpar.'),
+    endTime: time.nullable().optional().describe('Horário final HH:mm; se for menor que startTime, termina no dia seguinte. Use null junto com startTime para limpar.'),
   }));
   register('delete_routine_activity', 'Remove uma ocorrência, as ocorrências a partir de uma data ou a série inteira.', z.object({
     id: z.string().min(1).describe('ID da série da atividade.'),

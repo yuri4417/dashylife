@@ -79,7 +79,7 @@ export function TodoModal({
         <Field label="Início (opcional)"><TimeInput label="Início da tarefa" value={formData.startTime} onChange={(value) => onUpdateForm('startTime', value)} /></Field>
         <Field label="Fim (opcional)"><TimeInput label="Fim da tarefa" value={formData.endTime} onChange={(value) => onUpdateForm('endTime', value)} /></Field>
       </div>
-      <p className="text-xs text-tertiary">Sem horários, a tarefa ocupa o dia inteiro.</p>
+      <p className="text-xs text-tertiary">Sem horários, a tarefa ocupa o dia inteiro. Para terminar no dia seguinte, informe um horário final anterior ao início.</p>
       {errorField === 'startTime' && <FieldError message={modalError} />}
 
       <RepeatInput enabled={formData.repetitionEnabled} onToggle={onToggleRepetition} label="Repetir tarefa" interval={formData.repetitionInterval} onIntervalChange={value => onUpdateForm('repetitionInterval', value)} unit={formData.repetitionType} onUnitChange={value => onUpdateForm('repetitionType', value)} options={[{ value: 'hours', label: 'Horas' }, { value: 'days', label: 'Dias' }, { value: 'weeks', label: 'Semanas' }]} />

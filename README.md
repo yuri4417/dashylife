@@ -192,7 +192,7 @@ the host must be able to start the process and reach the DashyLife API.
 
 The server exposes 17 tools:
 
-- Tasks: `list_todos`, `create_todo`, `update_todo`, `delete_todo`. Creation and updates support optional `startTime` and `endTime` in `HH:mm` format; both must be supplied together and the end must be later than the start. Weekly `repetition` can include `weekdays` (0 = Sunday, 6 = Saturday) and requires a due date when weekdays are selected.
+- Tasks: `list_todos`, `create_todo`, `update_todo`, `delete_todo`. Creation and updates support optional `startTime` and `endTime` in `HH:mm` format; both must be supplied together, equal times are invalid, and an end earlier than the start means the event ends the next day. Weekly `repetition` can include `weekdays` (0 = Sunday, 6 = Saturday) and requires a due date when weekdays are selected.
 - Routine categories: `list_routine_categories`, `create_routine_category`, `update_routine_category`, `delete_routine_category`. Deleting a category leaves its activities uncategorized.
 - Routine activities: `list_routine_activities`, `create_routine_activity`, `update_routine_activity`, `update_routine_occurrence`, `delete_routine_activity`. Listing requires a start and end date; series updates affect the series; `update_routine_occurrence` edits a single linked occurrence using its `originalDate`; deletion supports `occurrence`, `future`, or `series` scope.
 - Games: `list_games`, `create_game`, `update_game`, `delete_game`.

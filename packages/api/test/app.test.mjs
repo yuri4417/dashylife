@@ -201,14 +201,18 @@ test('routine validation, monthly dates, partial updates and MCP share the same 
   assert.equal(changed.statusCode, 200);
   assert.equal(changed.json().startTime, undefined);
   assert.equal(changed.json().recurrence, undefined);
-  assert.equal((await app.inject({ method: 'PUT', url: `/api/routine/activities/${activity.id}`, payload: { startTime: '13:00', endTime: '12:00' } })).statusCode, 400);
+  assert.equal((await app.inject({ method: 'PUT', url: `/api/routine/activities/${activity.id}`, payload: { startTime: '13:00', endTime: '12:00' } })).statusCode, 200);
+  assert.equal((await app.inject({ method: 'PUT', url: `/api/routine/activities/${activity.id}`, payload: { startTime: '13:00', endTime: '13:00' } })).statusCode, 400);
   assert.equal((await app.inject('/api/routine/activities?start=2027-02-30&end=2027-03-01')).statusCode, 400);
   assert.equal((await app.inject('/api/routine/activities?start=2020-01-01&end=2030-01-01')).statusCode, 400);
   assert.equal((await viaMcp('delete_routine_activity', { id: activity.id, scope: 'occurrence', date: '2027-01-31' })).statusCode, 200);
 });
 
-test('task times are validated, can be cleared and carry over on repetition', async () => {
-  assert.equal((await app.inject({ method: 'POST', url: '/api/todos', payload: { title: 'Horário inválido', startTime: '10:00', endTime: '09:00' } })).statusCode, 400);
+test('task times support overnight ranges, can be cleared and carry over on repetition', async () => {
+  assert.equal((await app.inject({ method: 'POST', url: '/api/todos', payload: { title: 'Horário inválido', startTime: '10:00', endTime: '10:00' } })).statusCode, 400);
+  const overnight = await app.inject({ method: 'POST', url: '/api/todos', payload: { title: 'Tarefa noturna', startTime: '23:00', endTime: '07:00' } });
+  assert.equal(overnight.statusCode, 201);
+  assert.equal(overnight.json().endTime, '07:00');
   const created = await app.inject({ method: 'POST', url: '/api/todos', payload: {
     title: 'Horário recorrente', dueDate: '2026-11-15', startTime: '10:00', endTime: '11:00', repetition: { type: 'days', interval: 1 },
   } });
@@ -354,7 +358,9 @@ test('edits and reschedules an individual occurrence while retaining its origina
   assert.equal(changedAgain.statusCode, 200);
   assert.equal((await list('2026-12-06', '2026-12-06')).length, 1);
   assert.equal((await list('2026-10-20', '2026-10-20'))[0].title, 'Treino especial');
-  const invalid = await change('2026-11-15', { startTime: '16:00', endTime: '15:00' });
+  const overnight = await change('2026-11-15', { startTime: '16:00', endTime: '15:00' });
+  assert.equal(overnight.statusCode, 200);
+  const invalid = await change('2026-11-22', { startTime: '16:00', endTime: '16:00' });
   assert.equal(invalid.statusCode, 400);
   assert.equal((await list('2026-11-15', '2026-11-15')).length, 1);
   assert.equal((await change('2026-11-09', { title: 'Inexistente' })).statusCode, 404);
