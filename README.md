@@ -37,13 +37,13 @@ During development, the following AI models were utilized:
 
 - Create, edit, complete, and delete tasks with optional descriptions and due dates.
 - Add optional start and end times; tasks without times are all-day events.
-- Repeat tasks at intervals of hours, days, or weeks. Completing a recurring task creates its next occurrence.
-- View dated tasks alongside activities in the Routine calendar.
+- Repeat tasks at intervals of hours, days, or weeks. Weekly repetition supports multiple weekdays; completing a recurring task creates its next occurrence.
+- View dated tasks alongside activities in the Routine calendar. Weekly tasks with selected weekdays show their future occurrences without creating duplicate task records; editing or deleting a projected occurrence affects the pending recurring task.
 
 ### Routine
 
-- Switch between daily, weekly (the default), and monthly calendar views; navigate directly to a date.
-- Create, edit, and delete activities without adding them to the Tasks list. Activities may be one-off or recur daily, weekly, or monthly at a chosen interval, with an optional end date.
+- Switch between daily, weekly (the default), and monthly calendar views; navigate directly to a date. Calendar weeks run from Sunday to Saturday, matching weekly recurrence.
+- Create, edit, and delete activities without adding them to the Tasks list. Activities may be one-off or recur daily, weekly, or monthly at a chosen interval, with an optional end date and multiple weekdays for weekly recurrence.
 - Create and manage color-coded categories for activities.
 - Open a day to see all-day items above a timeline, with timed events sized by duration. The current-time indicator appears only on today in the daily and weekly views.
 - Click an event or use its context menu to edit or delete it. When deleting a recurring activity, choose one occurrence or that occurrence and all future ones.
@@ -190,11 +190,11 @@ Node.js process over `stdio`. It calls the DashyLife API over HTTP. The MCP can
 be used with ChatGPT or another MCP host, including a host using a local model;
 the host must be able to start the process and reach the DashyLife API.
 
-The server exposes 16 tools:
+The server exposes 17 tools:
 
-- Tasks: `list_todos`, `create_todo`, `update_todo`, `delete_todo`. Creation and updates support optional `startTime` and `endTime` in `HH:mm` format; both must be supplied together and the end must be later than the start.
+- Tasks: `list_todos`, `create_todo`, `update_todo`, `delete_todo`. Creation and updates support optional `startTime` and `endTime` in `HH:mm` format; both must be supplied together and the end must be later than the start. Weekly `repetition` can include `weekdays` (0 = Sunday, 6 = Saturday) and requires a due date when weekdays are selected.
 - Routine categories: `list_routine_categories`, `create_routine_category`, `update_routine_category`, `delete_routine_category`. Deleting a category leaves its activities uncategorized.
-- Routine activities: `list_routine_activities`, `create_routine_activity`, `update_routine_activity`, `delete_routine_activity`. Listing requires a start and end date; updates affect the series, and deletion supports `occurrence`, `future`, or `series` scope.
+- Routine activities: `list_routine_activities`, `create_routine_activity`, `update_routine_activity`, `update_routine_occurrence`, `delete_routine_activity`. Listing requires a start and end date; series updates affect the series; `update_routine_occurrence` edits a single linked occurrence using its `originalDate`; deletion supports `occurrence`, `future`, or `series` scope.
 - Games: `list_games`, `create_game`, `update_game`, `delete_game`.
 
 See [the plugin README](dashylife-plugin/README.md) for setup, parameters, and tests.

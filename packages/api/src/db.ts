@@ -32,6 +32,7 @@ db.exec(`
     end_time TEXT,
     repetition_type TEXT,
     repetition_interval INTEGER,
+    repetition_weekdays TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )
@@ -62,6 +63,14 @@ db.exec(`
     occurrence_date TEXT NOT NULL,
     PRIMARY KEY (activity_id, occurrence_date)
   );
+  CREATE TABLE IF NOT EXISTS routine_overrides (
+    activity_id TEXT NOT NULL REFERENCES routine_activities(id) ON DELETE CASCADE,
+    original_date TEXT NOT NULL,
+    scheduled_date TEXT NOT NULL,
+    changes TEXT NOT NULL,
+    PRIMARY KEY (activity_id, original_date)
+  );
+  CREATE INDEX IF NOT EXISTS routine_override_dates ON routine_overrides(scheduled_date);
   CREATE INDEX IF NOT EXISTS routine_activity_dates ON routine_activities(start_date);
 `);
 
@@ -119,6 +128,7 @@ export function initDatabase() {
   const colNames = columns.map((c) => c.name);
   if (!colNames.includes('repetition_type')) db.exec('ALTER TABLE todos ADD COLUMN repetition_type TEXT');
   if (!colNames.includes('repetition_interval')) db.exec('ALTER TABLE todos ADD COLUMN repetition_interval INTEGER');
+  if (!colNames.includes('repetition_weekdays')) db.exec('ALTER TABLE todos ADD COLUMN repetition_weekdays TEXT');
   if (!colNames.includes('start_time')) db.exec('ALTER TABLE todos ADD COLUMN start_time TEXT');
   if (!colNames.includes('end_time')) db.exec('ALTER TABLE todos ADD COLUMN end_time TEXT');
 }
@@ -135,6 +145,7 @@ export function getAllTodos(): Todo[] {
     end_time: string | null;
     repetition_type: string | null;
     repetition_interval: number | null;
+    repetition_weekdays: string | null;
     created_at: string;
     updated_at: string;
   }>;
@@ -147,7 +158,7 @@ export function getAllTodos(): Todo[] {
     startTime: row.start_time || undefined,
     endTime: row.end_time || undefined,
     repetition: row.repetition_type && row.repetition_interval
-      ? { type: row.repetition_type as 'hours' | 'days' | 'weeks', interval: row.repetition_interval }
+      ? { type: row.repetition_type as 'hours' | 'days' | 'weeks', interval: row.repetition_interval, ...(row.repetition_weekdays ? { weekdays: JSON.parse(row.repetition_weekdays) as number[] } : {}) }
       : undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -166,6 +177,7 @@ export function getTodoById(id: string): Todo | undefined {
     end_time: string | null;
     repetition_type: string | null;
     repetition_interval: number | null;
+    repetition_weekdays: string | null;
     created_at: string;
     updated_at: string;
   } | undefined;
@@ -181,7 +193,7 @@ export function getTodoById(id: string): Todo | undefined {
     startTime: row.start_time || undefined,
     endTime: row.end_time || undefined,
     repetition: row.repetition_type && row.repetition_interval
-      ? { type: row.repetition_type as 'hours' | 'days' | 'weeks', interval: row.repetition_interval }
+      ? { type: row.repetition_type as 'hours' | 'days' | 'weeks', interval: row.repetition_interval, ...(row.repetition_weekdays ? { weekdays: JSON.parse(row.repetition_weekdays) as number[] } : {}) }
       : undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -192,8 +204,8 @@ export function createTodo(todo: Omit<Todo, 'id'>): Todo {
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
   const stmt = db.prepare(
-    `INSERT INTO todos (id, title, description, completed, due_date, start_time, end_time, repetition_type, repetition_interval, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO todos (id, title, description, completed, due_date, start_time, end_time, repetition_type, repetition_interval, repetition_weekdays, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   stmt.run(
     id,
@@ -205,13 +217,14 @@ export function createTodo(todo: Omit<Todo, 'id'>): Todo {
     todo.endTime || null,
     todo.repetition?.type || null,
     todo.repetition?.interval || null,
+    todo.repetition?.weekdays ? JSON.stringify(todo.repetition.weekdays) : null,
     todo.createdAt || now,
     todo.updatedAt || now
   );
   return { ...todo, id, createdAt: todo.createdAt || now, updatedAt: todo.updatedAt || now };
 }
 
-export function updateTodo(id: string, updates: Partial<Pick<Todo, 'title' | 'description' | 'completed' | 'dueDate' | 'repetition'>> & { startTime?: string | null; endTime?: string | null }): Todo | undefined {
+export function updateTodo(id: string, updates: Partial<Pick<Todo, 'title' | 'description' | 'completed' | 'dueDate'>> & { startTime?: string | null; endTime?: string | null; repetition?: Repetition | null }): Todo | undefined {
   const existing = getTodoById(id);
   if (!existing) return undefined;
 
@@ -244,9 +257,11 @@ export function updateTodo(id: string, updates: Partial<Pick<Todo, 'title' | 'de
   }
   if (updates.repetition !== undefined) {
     setFields.push('repetition_type = ?');
-    values.push(updates.repetition.type || null);
+    values.push(updates.repetition?.type || null);
     setFields.push('repetition_interval = ?');
-    values.push(updates.repetition.interval || null);
+    values.push(updates.repetition?.interval || null);
+    setFields.push('repetition_weekdays = ?');
+    values.push(updates.repetition?.weekdays ? JSON.stringify(updates.repetition.weekdays) : null);
   }
 
   setFields.push('updated_at = ?');

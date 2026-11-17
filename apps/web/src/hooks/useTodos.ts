@@ -14,6 +14,7 @@ export interface TodoModalFormData {
   repetitionEnabled: boolean;
   repetitionType: 'hours' | 'days' | 'weeks';
   repetitionInterval: number;
+  repetitionWeekdays: number[];
 }
 
 const EMPTY_FORM: TodoModalFormData = {
@@ -25,18 +26,20 @@ const EMPTY_FORM: TodoModalFormData = {
   repetitionEnabled: false,
   repetitionType: 'days',
   repetitionInterval: 1,
+  repetitionWeekdays: [],
 };
 
 function toFormData(todo: Todo): TodoModalFormData {
   return {
     title: todo.title,
     description: todo.description || '',
-    dueDate: todo.dueDate || '',
+    dueDate: todo.dueDate?.slice(0, 10) || '',
     startTime: todo.startTime || '',
     endTime: todo.endTime || '',
     repetitionEnabled: !!todo.repetition,
     repetitionType: todo.repetition?.type || 'days',
     repetitionInterval: todo.repetition?.interval || 1,
+    repetitionWeekdays: todo.repetition?.weekdays || [],
   };
 }
 
@@ -77,6 +80,10 @@ export function useTodos({ items: todos, loading, error, load: loadTodos, update
     setFormData((prev) => ({ ...prev, [field]: value }));
   }, []);
 
+  const setRepetitionWeekdays = useCallback((days: number[]) => {
+    setFormData((prev) => ({ ...prev, repetitionWeekdays: days }));
+  }, []);
+
   const setRepetitionEnabled = useCallback((enabled: boolean) => {
     setFormData((prev) => ({ ...prev, repetitionEnabled: enabled }));
   }, []);
@@ -98,6 +105,11 @@ export function useTodos({ items: todos, loading, error, load: loadTodos, update
       setErrorField('startTime');
       return;
     }
+    if (formData.repetitionEnabled && formData.repetitionType === 'weeks' && formData.repetitionWeekdays.length && !formData.dueDate) {
+      setModalError('Informe a data da primeira tarefa para repetir nos dias selecionados.');
+      setErrorField('dueDate');
+      return;
+    }
     if (formData.startTime && !formData.dueDate) {
       setModalError('Informe uma data para a tarefa com horário.');
       setErrorField('startTime');
@@ -106,13 +118,15 @@ export function useTodos({ items: todos, loading, error, load: loadTodos, update
 
     try {
       const repetition: Repetition | undefined = formData.repetitionEnabled
-        ? { type: formData.repetitionType, interval: Math.max(1, Math.floor(Number(formData.repetitionInterval) || 1)) }
+        ? { type: formData.repetitionType, interval: Math.max(1, Math.floor(Number(formData.repetitionInterval) || 1)), ...(formData.repetitionType === 'weeks' && formData.repetitionWeekdays.length ? { weekdays: formData.repetitionWeekdays } : {}) }
         : undefined;
+      const originalDate = isEditing ? todos.find(todo => todo.id === editingId)?.dueDate : undefined;
+      const dueDate = originalDate && originalDate.slice(0, 10) === formData.dueDate ? originalDate : formData.dueDate || undefined;
       const payload = {
         title: formData.title,
         description: formData.description || undefined,
-        dueDate: formData.dueDate || undefined,
-        repetition,
+        dueDate,
+        repetition: repetition ?? null,
         startTime: formData.startTime || null,
         endTime: formData.endTime || null,
       };
@@ -121,7 +135,7 @@ export function useTodos({ items: todos, loading, error, load: loadTodos, update
         const { updated } = await updateTodo(editingId, payload);
         updateItems((prev) => prev.map((t) => (t.id === editingId ? updated : t)));
       } else {
-        const created = await createTodo(payload);
+        const created = await createTodo({ ...payload, repetition });
         updateItems((prev) => [created, ...prev.filter((todo) => todo.id !== created.id)]);
       }
       closeModal();
@@ -130,7 +144,7 @@ export function useTodos({ items: todos, loading, error, load: loadTodos, update
         err instanceof Error ? err.message : isEditing ? 'Erro ao atualizar tarefa' : 'Erro ao criar tarefa',
       );
     }
-  }, [formData, isEditing, editingId, closeModal, updateItems]);
+  }, [formData, isEditing, editingId, todos, closeModal, updateItems]);
 
   const completeTodo = useCallback(async (id: string) => {
     setMutationError(null);
@@ -180,6 +194,7 @@ export function useTodos({ items: todos, loading, error, load: loadTodos, update
     closeModal,
     updateForm,
     setRepetitionEnabled,
+    setRepetitionWeekdays,
     saveTodo,
     completeTodo,
     deleteTodo,

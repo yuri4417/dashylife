@@ -2,6 +2,7 @@ import { Button } from '../ui/Button';
 import { DateInput } from '../ui/DateInput';
 import { TimeInput } from '../ui/TimeInput';
 import { RepeatInput } from '../ui/RepeatInput';
+import { WeekdayPicker } from '../ui/WeekdayPicker';
 import { CharCounter, Field, FieldError, TextArea, TextInput } from '../ui/FormField';
 import { Modal } from '../ui/Modal';
 import type { TodoModalFormData } from '../../hooks/useTodos';
@@ -14,6 +15,7 @@ interface TodoModalProps {
   onClose: () => void;
   onUpdateForm: (field: keyof TodoModalFormData, value: string) => void;
   onToggleRepetition: (enabled: boolean) => void;
+  onWeekdaysChange: (days: number[]) => void;
   onSave: () => void;
 }
 
@@ -25,6 +27,7 @@ export function TodoModal({
   onClose,
   onUpdateForm,
   onToggleRepetition,
+  onWeekdaysChange,
   onSave,
 }: TodoModalProps) {
   return (
@@ -69,6 +72,7 @@ export function TodoModal({
 
       <Field label="Data de vencimento">
         <DateInput label="Data de vencimento" value={formData.dueDate} onChange={(value) => onUpdateForm('dueDate', value)} />
+        {errorField === 'dueDate' && <FieldError message={modalError} />}
       </Field>
 
       <div className="time-fields grid grid-cols-2 gap-3">
@@ -79,6 +83,8 @@ export function TodoModal({
       {errorField === 'startTime' && <FieldError message={modalError} />}
 
       <RepeatInput enabled={formData.repetitionEnabled} onToggle={onToggleRepetition} label="Repetir tarefa" interval={formData.repetitionInterval} onIntervalChange={value => onUpdateForm('repetitionInterval', value)} unit={formData.repetitionType} onUnitChange={value => onUpdateForm('repetitionType', value)} options={[{ value: 'hours', label: 'Horas' }, { value: 'days', label: 'Dias' }, { value: 'weeks', label: 'Semanas' }]} />
+      {formData.repetitionEnabled && formData.repetitionType === 'weeks' && <WeekdayPicker value={formData.repetitionWeekdays} onChange={onWeekdaysChange} />}
+      {formData.repetitionEnabled && formData.repetitionType === 'weeks' && formData.repetitionWeekdays.length > 0 && formData.dueDate && !formData.repetitionWeekdays.includes(new Date(`${formData.dueDate}T00:00:00Z`).getUTCDay()) && <p className="text-xs text-tertiary">A data de vencimento também será uma ocorrência, mesmo fora dos dias selecionados.</p>}
     </Modal>
   );
 }

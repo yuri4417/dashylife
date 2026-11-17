@@ -3,6 +3,8 @@ export type RepetitionType = 'hours' | 'days' | 'weeks';
 export interface Repetition {
   type: RepetitionType;
   interval: number;
+  /** Dias selecionados para repetição semanal: 0 = domingo, 6 = sábado. */
+  weekdays?: number[];
 }
 
 export interface Todo {
@@ -35,7 +37,7 @@ export interface UpdateTodoInput {
   dueDate?: string;
   startTime?: string | null;
   endTime?: string | null;
-  repetition?: Repetition;
+  repetition?: Repetition | null;
 }
 
 export interface TodoCompletionResult {
@@ -144,7 +146,20 @@ export interface RoutineActivity {
 }
 
 export interface RoutineOccurrence extends RoutineActivity {
+  /** Data atual da ocorrência no calendário. */
   occurrenceDate: string;
+  /** Data original na série, mesmo após reagendamento. */
+  originalDate: string;
+  isException?: boolean;
+}
+
+export interface UpdateRoutineOccurrenceInput {
+  title?: string;
+  description?: string | null;
+  categoryId?: string | null;
+  occurrenceDate?: string;
+  startTime?: string | null;
+  endTime?: string | null;
 }
 
 export interface CreateRoutineActivityInput {

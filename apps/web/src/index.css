@@ -276,3 +276,10 @@ button {
   .time-panel-actions button { min-height: 44px; }
   .date-week button { min-height: 36px; }
 }
+.weekday-picker legend { margin-bottom: 8px; color: var(--color-tertiary); font-size: .875rem; font-weight: 500; }
+.weekday-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.weekday-options button { min-width: 42px; min-height: 42px; flex: 1; padding: 6px; border: 1px solid var(--color-border); border-radius: 9px; color: var(--color-tertiary); font-size: .75rem; font-weight: 600; }
+.weekday-options button[aria-pressed='true'] { border-color: var(--color-action); background: var(--color-action); color: var(--color-action-text); }
+.weekday-picker p { margin-top: 7px; color: var(--color-tertiary); font-size: .75rem; }
+
+.routine-context-note { padding: 8px 12px; color: var(--color-tertiary); font-size: .75rem; line-height: 1.4; }

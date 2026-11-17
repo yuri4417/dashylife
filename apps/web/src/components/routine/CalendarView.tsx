@@ -4,23 +4,14 @@ import type { Todo } from '@dashylife/shared';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { DateInput } from '../ui/DateInput';
+import { todoOccursOn } from '../../utils/todoSchedule';
+import { addDays, dateString, visibleRange, type CalendarView as View } from '../../utils/calendarDates';
 
-export type CalendarActivity = { id: string; title: string; description?: string; categoryId?: string; startDate: string; startTime?: string; endTime?: string; recurrence?: { frequency: 'daily' | 'weekly' | 'monthly'; interval: number; weekdays?: number[]; endDate?: string }; occurrenceDate: string };
-type Entry = { kind: 'todo'; value: Todo } | { kind: 'activity'; value: CalendarActivity };
-export type View = 'day' | 'week' | 'month';
+export type CalendarActivity = { id: string; title: string; description?: string; categoryId?: string; startDate: string; startTime?: string; endTime?: string; recurrence?: { frequency: 'daily' | 'weekly' | 'monthly'; interval: number; weekdays?: number[]; endDate?: string }; occurrenceDate: string; originalDate: string; isException?: boolean };
+type Entry = { kind: 'todo'; value: Todo; projected: boolean } | { kind: 'activity'; value: CalendarActivity };
 type Context = { entry: Entry; x: number; y: number };
-export const dateString = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-const addDays = (date: Date, days: number) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
 const timeMinutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
 const HOUR_HEIGHT = 60;
-
-export function visibleRange(date: Date, view: View): [Date, Date] {
-  if (view === 'day') return [date, date];
-  if (view === 'week') { const start = addDays(date, -date.getDay()); return [start, addDays(start, 6)]; }
-  const first = new Date(date.getFullYear(), date.getMonth(), 1);
-  const start = addDays(first, -first.getDay());
-  return [start, addDays(start, 41)];
-}
 
 function layoutEntries(entries: Entry[]) {
   const sorted = entries.map(entry => ({ entry, start: timeMinutes(entry.value.startTime!), end: timeMinutes(entry.value.endTime!) })).sort((a, b) => a.start - b.start || a.end - b.end);
@@ -67,10 +58,10 @@ export function CalendarView({ date, view, onDateChange, onViewChange, activitie
   }, [context]);
   const [start, end] = visibleRange(date, view);
   const dates = Array.from({ length: Math.round((Date.UTC(end.getFullYear(), end.getMonth(), end.getDate()) - Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000) + 1 }, (_, i) => addDays(start, i));
-  const entriesFor = (d: Date): Entry[] => { const key = dateString(d); return [...todos.filter(t => t.dueDate?.slice(0, 10) === key).map(value => ({ kind: 'todo' as const, value })), ...activities.filter(a => a.occurrenceDate === key).map(value => ({ kind: 'activity' as const, value }))]; };
+  const entriesFor = (d: Date): Entry[] => { const key = dateString(d); return [...todos.filter(t => todoOccursOn(t, key)).map(value => ({ kind: 'todo' as const, value, projected: value.dueDate?.slice(0, 10) !== key })), ...activities.filter(a => a.occurrenceDate === key).map(value => ({ kind: 'activity' as const, value }))]; };
   const colorFor = (entry: Entry) => entry.kind === 'todo' ? 'var(--color-accent)' : categories.find(c => c.id === entry.value.categoryId)?.color || '#8bbf85';
-  const menu = (event: MouseEvent, entry: Entry) => { event.preventDefault(); event.stopPropagation(); const rect = event.currentTarget.getBoundingClientRect(); const x = event.type === 'contextmenu' ? event.clientX : rect.left; const y = event.type === 'contextmenu' ? event.clientY : rect.bottom; setContext({ entry, x: Math.max(8, Math.min(x, window.innerWidth - 190)), y: Math.max(8, Math.min(y, window.innerHeight - 115)) }); };
-  const eventButton = (entry: Entry, style?: CSSProperties) => { const color = colorFor(entry); return <button key={`${entry.kind}-${entry.value.id}`} type="button" title={`${entry.kind === 'todo' ? 'Tarefa' : 'Atividade'}: ${entry.value.title}`} aria-label={`${entry.kind === 'todo' ? 'Tarefa' : 'Atividade'}: ${entry.value.title}. Abrir opções`} className="routine-event" style={{ ...style, borderLeftColor: color, background: `color-mix(in srgb, ${color} 23%, var(--color-surface))` }} onClick={e => menu(e, entry)} onContextMenu={e => menu(e, entry)}>{entry.value.title}</button>; };
+  const menu = (event: MouseEvent, entry: Entry) => { event.preventDefault(); event.stopPropagation(); const rect = event.currentTarget.getBoundingClientRect(); const x = event.type === 'contextmenu' ? event.clientX : rect.left; const y = event.type === 'contextmenu' ? event.clientY : rect.bottom; setContext({ entry, x: Math.max(8, Math.min(x, window.innerWidth - 190)), y: Math.max(8, Math.min(y, window.innerHeight - (entry.kind === 'todo' && entry.projected ? 180 : 115))) }); };
+  const eventButton = (entry: Entry, style?: CSSProperties) => { const color = colorFor(entry); return <button key={`${entry.kind}-${entry.value.id}-${entry.kind === 'activity' ? entry.value.originalDate : ''}`} type="button" title={`${entry.kind === 'todo' ? 'Tarefa' : 'Atividade'}: ${entry.value.title}${entry.kind === 'todo' && entry.projected ? ' (ocorrência futura)' : ''}`} aria-label={`${entry.kind === 'todo' ? 'Tarefa' : 'Atividade'}: ${entry.value.title}${entry.kind === 'todo' && entry.projected ? ', ocorrência futura' : ''}. Abrir opções`} className="routine-event" style={{ ...style, borderLeftColor: color, background: `color-mix(in srgb, ${color} 23%, var(--color-surface))` }} onClick={e => menu(e, entry)} onContextMenu={e => menu(e, entry)}>{entry.value.title}</button>; };
   const timeline = (days: Date[], detailed = false) => <div ref={detailed ? detailTimeline : mainTimeline} className={`routine-timeline-scroll ${detailed ? 'is-detail' : ''}`}><div className="routine-timeline" style={{ '--routine-days': days.length } as CSSProperties}>
     <div className="routine-time-head">Dia inteiro</div>{days.map(d => <div className="routine-all-day" key={dateString(d)} onClick={() => onCreate(dateString(d))}>{entriesFor(d).filter(e => !e.value.startTime || !e.value.endTime).map(e => eventButton(e))}</div>)}
     <div className="routine-time-labels">{Array.from({ length: 24 }, (_, i) => <div key={i} style={{ height: HOUR_HEIGHT }}>{String(i).padStart(2, '0')}:00</div>)}</div>
@@ -88,6 +79,6 @@ export function CalendarView({ date, view, onDateChange, onViewChange, activitie
     {view === 'month' ? <div className="routine-month-grid">{dates.map(d => { const key = dateString(d); return <div key={key} className={`routine-month-cell ${d.getMonth() !== date.getMonth() ? 'is-outside' : ''}`} onClick={() => onCreate(key)}><button className={`routine-date-number ${key === dateString(now) ? 'is-today' : ''}`} aria-label={`Ver dia ${d.toLocaleDateString('pt-BR')}`} onClick={e => { e.stopPropagation(); setDay(d); }}>{d.getDate()}</button><div className="routine-month-events">{entriesFor(d).map(e => eventButton(e))}</div></div>; })}</div> : timeline(dates)}
     </div></div>
     {day && <Modal title={day.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} maxWidth="max-w-3xl" onClose={() => setDay(null)}><p className="text-xs text-tertiary">Clique em um espaço livre para criar uma atividade. Clique em um evento para ver as opções.</p>{timeline([day], true)}</Modal>}
-    {context && <div className="routine-context" role="menu" aria-label="Opções do evento" style={{ left: context.x, top: context.y }} onClick={e => e.stopPropagation()}><button role="menuitem" onClick={() => { onEdit(context.entry); setContext(null); }}>Alterar</button><button role="menuitem" className="is-danger" onClick={() => { onDelete(context.entry); setContext(null); }}>Excluir</button></div>}
+    {context && <div className="routine-context" role="menu" aria-label="Opções do evento" style={{ left: context.x, top: context.y }} onClick={e => e.stopPropagation()}>{context.entry.kind === 'todo' && context.entry.projected && <p className="routine-context-note">Ocorrência futura. Alterar ou excluir afeta a tarefa pendente e suas próximas ocorrências.</p>}<button role="menuitem" onClick={() => { onEdit(context.entry); setContext(null); }}>Alterar</button><button role="menuitem" className="is-danger" onClick={() => { onDelete(context.entry); setContext(null); }}>Excluir</button></div>}
   </>;
 }

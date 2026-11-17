@@ -53,7 +53,14 @@ try {
   const list = () => call('list_routine_activities', { start: '2026-11-16', end: '2026-11-30' });
   const dates = async () => (await list()).map(({ occurrenceDate }) => occurrenceDate);
   assert.deepEqual(await dates(), ['2026-11-16', '2026-11-18', '2026-11-23', '2026-11-25', '2026-11-30']);
-  await call('delete_routine_activity', { id: activity.id, scope: 'occurrence', date: '2026-11-18' });
+  const moved = await call('update_routine_occurrence', { id: activity.id, originalDate: '2026-11-18', occurrenceDate: '2026-12-01', title: 'Caminhada especial' });
+  assert.equal(moved.originalDate, '2026-11-18');
+  assert.equal(moved.occurrenceDate, '2026-12-01');
+  const movedList = await call('list_routine_activities', { start: '2026-12-01', end: '2026-12-01' });
+  assert.equal(movedList[0].id, activity.id);
+  assert.equal(movedList[0].title, 'Caminhada especial');
+  assert.equal(movedList[0].originalDate, '2026-11-18');
+  await call('delete_routine_activity', { id: activity.id, scope: 'occurrence', date: movedList[0].originalDate });
   await call('delete_routine_activity', { id: activity.id, scope: 'future', date: '2026-11-25' });
   assert.deepEqual(await dates(), ['2026-11-16', '2026-11-23']);
 
@@ -79,14 +86,31 @@ try {
 
   const todo = await call('create_todo', {
     title: 'Consulta', dueDate: '2026-11-16', startTime: '09:00', endTime: '10:00',
-    repetition: { type: 'days', interval: 1 },
+    repetition: { type: 'weeks', interval: 2, weekdays: [1, 3, 5] },
   });
   const completed = await call('update_todo', { id: todo.id, completed: true });
+  assert.equal(completed.next.dueDate.slice(0, 10), '2026-11-18');
+  assert.deepEqual(completed.next.repetition.weekdays, [1, 3, 5]);
+  const nextCompleted = await call('update_todo', { id: completed.next.id, completed: true });
+  assert.equal(nextCompleted.next.dueDate.slice(0, 10), '2026-11-20');
+  const afterFriday = await call('update_todo', { id: nextCompleted.next.id, completed: true });
+  assert.equal(afterFriday.next.dueDate.slice(0, 10), '2026-11-30');
   assert.equal(completed.next.startTime, '09:00');
   assert.equal(completed.next.endTime, '10:00');
   const cleared = await call('update_todo', { id: completed.next.id, startTime: null, endTime: null });
   assert.equal(cleared.startTime, undefined);
   assert.equal(cleared.endTime, undefined);
+
+  const fortnight = await call('create_todo', {
+    title: 'Domingo e sexta', dueDate: '2026-11-15',
+    repetition: { type: 'weeks', interval: 2, weekdays: [0, 5] },
+  });
+  const nextFriday = await call('update_todo', { id: fortnight.id, completed: true });
+  assert.equal(nextFriday.next.dueDate.slice(0, 10), '2026-11-20');
+  const nextSunday = await call('update_todo', { id: nextFriday.next.id, completed: true });
+  assert.equal(nextSunday.next.dueDate.slice(0, 10), '2026-11-29');
+  const afterSunday = await call('update_todo', { id: nextSunday.next.id, completed: true });
+  assert.equal(afterSunday.next.dueDate.slice(0, 10), '2026-12-04');
 
   const invalid = await client.callTool({
     name: 'list_routine_activities', arguments: { start: '2026-11-30', end: '2026-11-01' },

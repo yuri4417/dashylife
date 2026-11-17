@@ -27,6 +27,7 @@ export function TodoList({ collection }: { collection: Collection<Todo> }) {
     closeModal,
     updateForm,
     setRepetitionEnabled,
+    setRepetitionWeekdays,
     saveTodo,
     completeTodo,
     deleteTodo,
@@ -86,6 +87,7 @@ export function TodoList({ collection }: { collection: Collection<Todo> }) {
           onClose={closeModal}
           onUpdateForm={updateForm}
           onToggleRepetition={setRepetitionEnabled}
+          onWeekdaysChange={setRepetitionWeekdays}
           onSave={saveTodo}
         />
       )}

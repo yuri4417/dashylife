@@ -125,6 +125,10 @@ function executeMcpTool(tool: string, rawArgs: unknown): unknown {
       const { id: rawId, ...update } = args;
       return routineRepo.updateActivity(requireId(rawId), update);
     }
+    case 'update_routine_occurrence': {
+      const { id: rawId, originalDate, ...update } = args;
+      return routineRepo.updateOccurrence(requireId(rawId), originalDate, update);
+    }
     case 'delete_routine_activity':
       return routineRepo.deleteActivity(requireId(args.id), args.scope, args.date);
     case 'list_games':
@@ -402,8 +406,14 @@ app.post('/api/routine/activities', async (request, reply) => {
   return reply.code(201).send(routineRepo.createActivity(request.body));
 });
 
+app.get<{ Params: { id: string } }>('/api/routine/activities/:id', async ({ params }) => routineRepo.getActivity(params.id));
+
 app.put<{ Params: { id: string } }>('/api/routine/activities/:id', async ({ params, body }) => {
   return routineRepo.updateActivity(params.id, body);
+});
+
+app.put<{ Params: { id: string; originalDate: string } }>('/api/routine/activities/:id/occurrences/:originalDate', async ({ params, body }) => {
+  return routineRepo.updateOccurrence(params.id, params.originalDate, body);
 });
 
 app.delete<{ Params: { id: string }; Querystring: { scope?: string; date?: string } }>(

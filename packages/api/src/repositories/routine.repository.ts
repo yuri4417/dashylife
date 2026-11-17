@@ -14,6 +14,18 @@ type ActivityRow = {
   created_at: string; updated_at: string;
 };
 type ActivityValues = Omit<RoutineActivity, 'id' | 'createdAt' | 'updatedAt'>;
+type OverrideRow = { activity_id: string; original_date: string; scheduled_date: string; changes: string };
+type OverrideChanges = { title?: string; description?: string | null; categoryId?: string | null; startTime?: string | null; endTime?: string | null };
+
+function applyOverride(activity: RoutineActivity, row: OverrideRow): RoutineOccurrence {
+  const changes = JSON.parse(row.changes) as OverrideChanges;
+  return { ...activity, ...changes,
+    description: changes.description === undefined ? activity.description : changes.description ?? undefined,
+    categoryId: changes.categoryId === undefined ? activity.categoryId : changes.categoryId ?? undefined,
+    startTime: changes.startTime === undefined ? activity.startTime : changes.startTime ?? undefined,
+    endTime: changes.endTime === undefined ? activity.endTime : changes.endTime ?? undefined,
+    occurrenceDate: row.scheduled_date, originalDate: row.original_date, isException: true };
+}
 
 function categoryFromRow(row: CategoryRow): RoutineCategory {
   return { id: row.id, name: row.name, color: row.color, createdAt: row.created_at, updatedAt: row.updated_at };
@@ -115,8 +127,8 @@ function occursOn(activity: RoutineActivity, date: string): boolean {
   const days = (current.getTime() - start.getTime()) / DAY_MS;
   if (recurrence.frequency === 'daily') return days % recurrence.interval === 0;
   if (recurrence.frequency === 'weekly') {
-    const startMonday = start.getTime() - ((start.getUTCDay() + 6) % 7) * DAY_MS;
-    const weeks = Math.floor((current.getTime() - startMonday) / (7 * DAY_MS));
+    const startSunday = start.getTime() - start.getUTCDay() * DAY_MS;
+    const weeks = Math.floor((current.getTime() - startSunday) / (7 * DAY_MS));
     return weeks % recurrence.interval === 0
       && (recurrence.weekdays ?? [start.getUTCDay()]).includes(current.getUTCDay());
   }
@@ -150,31 +162,48 @@ export class RoutineRepository {
   }
 
   deleteCategory(id: string): { deleted: string } {
-    if (!db.prepare('DELETE FROM routine_categories WHERE id = ?').run(id).changes) throw new ApiError(404, 'Categoria não encontrada.');
-    return { deleted: id };
+    return db.transaction(() => {
+      if (!db.prepare('DELETE FROM routine_categories WHERE id = ?').run(id).changes) throw new ApiError(404, 'Categoria não encontrada.');
+      const rows = db.prepare('SELECT * FROM routine_overrides').all() as OverrideRow[];
+      const update = db.prepare('UPDATE routine_overrides SET changes = ? WHERE activity_id = ? AND original_date = ?');
+      for (const row of rows) {
+        const changes = JSON.parse(row.changes) as OverrideChanges;
+        if (changes.categoryId === id) { changes.categoryId = null; update.run(JSON.stringify(changes), row.activity_id, row.original_date); }
+      }
+      return { deleted: id };
+    })();
   }
 
   listActivities(start: unknown, end: unknown): RoutineOccurrence[] {
     if (!isDate(start) || !isDate(end) || start > end || (dateMs(end) - dateMs(start)) / DAY_MS > MAX_RANGE_DAYS) {
       throw new ApiError(400, 'Informe um período válido de até cinco anos com start e end (AAAA-MM-DD).');
     }
-    const rows = db.prepare('SELECT * FROM routine_activities WHERE start_date <= ?').all(end) as ActivityRow[];
+    const rows = db.prepare(`SELECT * FROM routine_activities a WHERE start_date <= ? OR EXISTS
+      (SELECT 1 FROM routine_overrides o WHERE o.activity_id = a.id AND o.scheduled_date BETWEEN ? AND ?)`).all(end, start, end) as ActivityRow[];
     const excludedRows = db.prepare('SELECT activity_id, occurrence_date FROM routine_exclusions WHERE occurrence_date BETWEEN ? AND ?')
       .all(start, end) as Array<{ activity_id: string; occurrence_date: string }>;
     const exclusions = new Set(excludedRows.map((row) => `${row.activity_id}:${row.occurrence_date}`));
+    const overrideRows = db.prepare('SELECT * FROM routine_overrides WHERE original_date BETWEEN ? AND ? OR scheduled_date BETWEEN ? AND ?')
+      .all(start, end, start, end) as OverrideRow[];
+    const overrides = new Map(overrideRows.map(row => [`${row.activity_id}:${row.original_date}`, row]));
+    const activities = new Map(rows.map(row => [row.id, activityFromRow(row)]));
     const result: RoutineOccurrence[] = [];
-    for (const row of rows) {
-      const activity = activityFromRow(row);
+    for (const activity of activities.values()) {
       const first = Math.max(dateMs(start), dateMs(activity.startDate));
       const last = Math.min(dateMs(end), activity.recurrence?.endDate ? dateMs(activity.recurrence.endDate) : dateMs(end));
       for (let day = first; day <= last; day += DAY_MS) {
         const date = new Date(day).toISOString().slice(0, 10);
-        if (occursOn(activity, date) && !exclusions.has(`${activity.id}:${date}`)) result.push({ ...activity, occurrenceDate: date });
+        const key = `${activity.id}:${date}`;
+        if (occursOn(activity, date) && !exclusions.has(key) && !overrides.has(key)) result.push({ ...activity, occurrenceDate: date, originalDate: date });
         if (!activity.recurrence) break;
       }
     }
+    for (const row of overrideRows) {
+      const activity = activities.get(row.activity_id);
+      if (activity && row.scheduled_date >= start && row.scheduled_date <= end) result.push(applyOverride(activity, row));
+    }
     return result.sort((a, b) => a.occurrenceDate.localeCompare(b.occurrenceDate)
-      || (a.startTime ?? '').localeCompare(b.startTime ?? '') || a.title.localeCompare(b.title, 'pt-BR') || a.id.localeCompare(b.id));
+      || (a.startTime ?? '').localeCompare(b.startTime ?? '') || a.title.localeCompare(b.title, 'pt-BR') || a.id.localeCompare(b.id) || a.originalDate.localeCompare(b.originalDate));
   }
 
   createActivity(input: unknown): RoutineActivity {
@@ -200,31 +229,75 @@ export class RoutineRepository {
     return { ...previous, ...values, updatedAt };
   }
 
-  deleteActivity(id: string, scope: unknown, date: unknown): { deleted: string; scope: RoutineDeleteScope; date?: string } {
-    const activity = this.getActivity(id);
-    if (scope !== 'occurrence' && scope !== 'future' && scope !== 'series') throw new ApiError(400, 'Informe o escopo de exclusão da atividade.');
-    if (scope === 'series') {
-      db.prepare('DELETE FROM routine_activities WHERE id = ?').run(id);
-      return { deleted: id, scope };
-    }
-    if (!isDate(date)) throw new ApiError(400, 'Informe a data da ocorrência no formato AAAA-MM-DD.');
-    if (!occursOn(activity, date) || db.prepare('SELECT 1 FROM routine_exclusions WHERE activity_id = ? AND occurrence_date = ?').get(id, date)) {
-      throw new ApiError(404, 'Ocorrência não encontrada.');
-    }
-    if (!activity.recurrence || (scope === 'future' && date === activity.startDate)) {
-      db.prepare('DELETE FROM routine_activities WHERE id = ?').run(id);
-    } else if (scope === 'occurrence') {
-      db.prepare('INSERT INTO routine_exclusions (activity_id, occurrence_date) VALUES (?, ?)').run(id, date);
-    } else {
-      const previousDate = new Date(dateMs(date) - DAY_MS).toISOString().slice(0, 10);
-      const recurrence = { ...activity.recurrence, endDate: previousDate };
-      db.prepare('UPDATE routine_activities SET recurrence = ?, updated_at = ? WHERE id = ?')
-        .run(JSON.stringify(recurrence), new Date().toISOString(), id);
-    }
-    return { deleted: id, scope, date };
+  updateOccurrence(id: string, originalDate: unknown, input: unknown): RoutineOccurrence {
+    return db.transaction(() => {
+      const activity = this.getActivity(id);
+      if (!isDate(originalDate)) throw new ApiError(400, 'Informe a data original da ocorrência no formato AAAA-MM-DD.');
+      const existing = db.prepare('SELECT * FROM routine_overrides WHERE activity_id = ? AND original_date = ?').get(id, originalDate) as OverrideRow | undefined;
+      if (!activity.recurrence && !existing) throw new ApiError(400, 'A edição de uma ocorrência exige uma atividade recorrente.');
+      if ((!existing && !occursOn(activity, originalDate)) || db.prepare('SELECT 1 FROM routine_exclusions WHERE activity_id = ? AND occurrence_date = ?').get(id, originalDate)) {
+        throw new ApiError(404, 'Ocorrência não encontrada.');
+      }
+      const data = object(input);
+      const allowed = ['title', 'description', 'categoryId', 'startTime', 'endTime', 'occurrenceDate'];
+      if (Object.keys(data).some(key => !allowed.includes(key))) throw new ApiError(400, 'Campo inválido para edição de ocorrência.');
+      const previous = existing ? applyOverride(activity, existing) : { ...activity, originalDate, occurrenceDate: originalDate };
+      const scheduledDate = data.occurrenceDate === undefined ? previous.occurrenceDate : data.occurrenceDate;
+      if (!isDate(scheduledDate)) throw new ApiError(400, 'Informe uma data válida para a ocorrência.');
+      const values = activityValues({ ...data, startDate: activity.startDate, recurrence: null }, previous);
+      const changes: OverrideChanges = existing ? JSON.parse(existing.changes) as OverrideChanges : {};
+      for (const key of ['title', 'description', 'categoryId'] as const) {
+        if (data[key] !== undefined) (changes as Record<string, unknown>)[key] = values[key] ?? null;
+      }
+      if (data.startTime !== undefined || data.endTime !== undefined) {
+        changes.startTime = values.startTime ?? null;
+        changes.endTime = values.endTime ?? null;
+      }
+      const row = { activity_id: id, original_date: originalDate, scheduled_date: scheduledDate, changes: JSON.stringify(changes) };
+      db.prepare(`INSERT INTO routine_overrides (activity_id, original_date, scheduled_date, changes) VALUES (?, ?, ?, ?)
+        ON CONFLICT(activity_id, original_date) DO UPDATE SET scheduled_date = excluded.scheduled_date, changes = excluded.changes`)
+        .run(id, originalDate, scheduledDate, row.changes);
+      return applyOverride(activity, row);
+    })();
   }
 
-  private getActivity(id: string): RoutineActivity {
+  deleteActivity(id: string, scope: unknown, date: unknown): { deleted: string; scope: RoutineDeleteScope; date?: string } {
+    return db.transaction((): { deleted: string; scope: RoutineDeleteScope; date?: string } => {
+      const activity = this.getActivity(id);
+      if (scope !== 'occurrence' && scope !== 'future' && scope !== 'series') throw new ApiError(400, 'Informe o escopo de exclusão da atividade.');
+      if (scope === 'series') {
+        db.prepare('DELETE FROM routine_activities WHERE id = ?').run(id);
+        return { deleted: id, scope };
+      }
+      if (!isDate(date)) throw new ApiError(400, 'Informe a data original da ocorrência no formato AAAA-MM-DD.');
+      const override = db.prepare('SELECT 1 FROM routine_overrides WHERE activity_id = ? AND original_date = ?').get(id, date);
+      if ((!override && !occursOn(activity, date)) || db.prepare('SELECT 1 FROM routine_exclusions WHERE activity_id = ? AND occurrence_date = ?').get(id, date)) {
+        throw new ApiError(404, 'Ocorrência não encontrada.');
+      }
+      if ((!activity.recurrence && !override) || (scope === 'future' && date === activity.startDate)) {
+        if (scope === 'future' && db.prepare('SELECT 1 FROM routine_overrides WHERE activity_id = ? AND original_date < ? LIMIT 1').get(id, date)) {
+          throw new ApiError(400, 'Não é possível excluir as ocorrências futuras sem apagar exceções anteriores.');
+        }
+        db.prepare('DELETE FROM routine_activities WHERE id = ?').run(id);
+      } else if (scope === 'occurrence') {
+        db.prepare('DELETE FROM routine_overrides WHERE activity_id = ? AND original_date = ?').run(id, date);
+        db.prepare('INSERT INTO routine_exclusions (activity_id, occurrence_date) VALUES (?, ?)').run(id, date);
+      } else if (activity.recurrence) {
+        if (date < activity.startDate) throw new ApiError(400, 'Não é possível encerrar a série antes da data inicial.');
+        const previousDate = new Date(dateMs(date) - DAY_MS).toISOString().slice(0, 10);
+        const endDate = activity.recurrence.endDate && activity.recurrence.endDate < previousDate
+          ? activity.recurrence.endDate : previousDate;
+        const recurrence = { ...activity.recurrence, endDate };
+        db.prepare('UPDATE routine_activities SET recurrence = ?, updated_at = ? WHERE id = ?').run(JSON.stringify(recurrence), new Date().toISOString(), id);
+        db.prepare('DELETE FROM routine_overrides WHERE activity_id = ? AND original_date >= ?').run(id, date);
+      } else {
+        db.prepare('DELETE FROM routine_overrides WHERE activity_id = ? AND original_date >= ?').run(id, date);
+      }
+      return { deleted: id, scope, date };
+    })();
+  }
+
+  getActivity(id: string): RoutineActivity {
     const row = db.prepare('SELECT * FROM routine_activities WHERE id = ?').get(id) as ActivityRow | undefined;
     if (!row) throw new ApiError(404, 'Atividade não encontrada.');
     return activityFromRow(row);

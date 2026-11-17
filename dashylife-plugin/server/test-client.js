@@ -26,7 +26,7 @@ try {
     'create_game', 'create_routine_activity', 'create_routine_category', 'create_todo',
     'delete_game', 'delete_routine_activity', 'delete_routine_category', 'delete_todo',
     'list_games', 'list_routine_activities', 'list_routine_categories', 'list_todos',
-    'update_game', 'update_routine_activity', 'update_routine_category', 'update_todo',
+    'update_game', 'update_routine_activity', 'update_routine_category', 'update_routine_occurrence', 'update_todo',
   ]);
 
   const cases = [
@@ -44,10 +44,11 @@ try {
     ['update_routine_activity', {
       id: 'activity-1', description: null, categoryId: null, startTime: null, endTime: null, recurrence: null,
     }],
+    ['update_routine_occurrence', { id: 'activity-1', originalDate: '2026-11-16', occurrenceDate: '2026-11-17', title: 'Reagendada' }],
     ['delete_routine_activity', { id: 'activity-1', scope: 'occurrence', date: '2026-11-16' }],
     ['delete_routine_activity', { id: 'activity-1', scope: 'future', date: '2026-11-16' }],
     ['delete_routine_activity', { id: 'activity-1', scope: 'series' }],
-    ['create_todo', { title: 'Consulta', dueDate: '2026-11-16', startTime: '09:00', endTime: '10:00' }],
+    ['create_todo', { title: 'Consulta', dueDate: '2026-11-16', startTime: '09:00', endTime: '10:00', repetition: { type: 'weeks', interval: 2, weekdays: [1, 3, 5] } }],
     ['update_todo', { id: 'todo-1', startTime: null, endTime: null }],
   ];
   for (const [name, args] of cases) {

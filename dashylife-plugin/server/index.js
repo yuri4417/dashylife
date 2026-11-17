@@ -8,11 +8,17 @@ const serverInfo = { name: 'dashylife', version: '0.2.0' };
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use uma data no formato AAAA-MM-DD.');
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use um horário no formato HH:mm.');
 const color = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Use uma cor no formato #RRGGBB.');
+const taskRepetition = z.object({
+  type: z.enum(['hours', 'days', 'weeks']),
+  interval: z.number().int().positive(),
+  weekdays: z.array(z.number().int().min(0).max(6)).min(1).max(7).optional().describe('Para repetição semanal: dias de 0 (domingo) a 6 (sábado), sem duplicatas; semanas vão de domingo a sábado e, se omitido, mantém o dia da data.'),
+});
+
 const recurrence = z.object({
   frequency: z.enum(['daily', 'weekly', 'monthly']).describe('Frequência diária, semanal ou mensal.'),
   interval: z.number().int().positive().describe('Intervalo positivo entre repetições.'),
   weekdays: z.array(z.number().int().min(0).max(6)).optional()
-    .describe('Somente para repetição semanal: dias da semana de 0 (domingo) a 6 (sábado).'),
+    .describe('Somente para repetição semanal: dias de 0 (domingo) a 6 (sábado); as semanas começam no domingo.'),
   endDate: date.optional().describe('Último dia permitido para a repetição, inclusive.'),
 });
 
@@ -59,10 +65,10 @@ function createServer() {
   register('create_todo', 'Cria uma tarefa.', z.object({
     title: z.string().min(1),
     description: z.string().optional(),
-    dueDate: z.string().optional(),
+    dueDate: z.string().optional().describe('Data da tarefa; obrigatória quando dias da semana são selecionados.'),
     startTime: time.optional().describe('Horário inicial HH:mm; informe junto com endTime. Sem horários, a tarefa ocupa o dia inteiro.'),
     endTime: time.optional().describe('Horário final HH:mm, posterior a startTime.'),
-    repetition: z.object({ type: z.enum(['hours', 'days', 'weeks']), interval: z.number().int().positive() }).optional(),
+    repetition: taskRepetition.optional(),
   }));
   register('update_todo', 'Atualiza uma tarefa pelo ID.', z.object({
     id: z.string().min(1),
@@ -72,7 +78,7 @@ function createServer() {
     dueDate: z.string().optional(),
     startTime: time.nullable().optional().describe('Horário inicial HH:mm; use null nos dois horários para removê-los.'),
     endTime: time.nullable().optional().describe('Horário final HH:mm; use null nos dois horários para removê-los.'),
-    repetition: z.object({ type: z.enum(['hours', 'days', 'weeks']), interval: z.number().int().positive() }).optional(),
+    repetition: taskRepetition.nullable().optional().describe('Use null para remover a repetição.'),
   }));
   register('delete_todo', 'Remove uma tarefa pelo ID.', z.object({ id: z.string().min(1) }));
   register('list_routine_categories', 'Lista as categorias de atividades da rotina.', z.object({}));
@@ -111,10 +117,20 @@ function createServer() {
     endTime: time.nullable().optional().describe('Horário final HH:mm; use null nos dois horários para removê-los.'),
     recurrence: recurrence.nullable().optional().describe('Use null para tornar a atividade única.'),
   }));
+  register('update_routine_occurrence', 'Edita ou reagenda uma ocorrência sem alterar a série. Use originalDate retornada pela listagem, mesmo após reagendar.', z.object({
+    id: z.string().min(1).describe('ID da série da atividade.'),
+    originalDate: date.describe('Data original da ocorrência na série, mesmo após reagendamento.'),
+    occurrenceDate: date.optional().describe('Nova data para reagendar somente esta ocorrência.'),
+    title: z.string().min(1).optional(),
+    description: z.string().nullable().optional().describe('Use null para limpar a descrição.'),
+    categoryId: z.string().min(1).nullable().optional().describe('Use null para remover a categoria.'),
+    startTime: time.nullable().optional().describe('Horário inicial HH:mm; use null junto com endTime para limpar.'),
+    endTime: time.nullable().optional().describe('Horário final HH:mm; use null junto com startTime para limpar.'),
+  }));
   register('delete_routine_activity', 'Remove uma ocorrência, as ocorrências a partir de uma data ou a série inteira.', z.object({
     id: z.string().min(1).describe('ID da série da atividade.'),
     scope: z.enum(['occurrence', 'future', 'series']).describe('occurrence: apenas a ocorrência; future: a ocorrência e as futuras; series: toda a série.'),
-    date: date.optional().describe('Data da ocorrência em AAAA-MM-DD; obrigatória para occurrence e future.'),
+    date: date.optional().describe('Data original da ocorrência na série (originalDate), mesmo se reagendada; obrigatória para occurrence e future.'),
   }));
   register('list_games', 'Lista jogos cadastrados no DashyLife.', z.object({}));
   register('create_game', 'Adiciona um jogo à biblioteca.', z.object({
