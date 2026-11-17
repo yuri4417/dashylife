@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 
-export type SectionType = 'home' | 'todo' | 'gamelist' | 'settings';
+export type SectionType = 'home' | 'todo' | 'gamelist' | 'routine' | 'settings';
 
 export interface MenuItem {
   id: SectionType;

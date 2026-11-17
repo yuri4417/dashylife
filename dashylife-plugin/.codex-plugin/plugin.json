@@ -2,15 +2,15 @@
   "interface": {
     "capabilities": ["Interactive"],
     "category": "Productivity",
-    "defaultPrompt": "Consulte e organize minhas tarefas e minha biblioteca de jogos no DashyLife.",
+    "defaultPrompt": "Consulte e organize minhas tarefas, minha rotina e minha biblioteca de jogos no DashyLife.",
     "developerName": "DashyLife",
     "displayName": "DashyLife",
     "longDescription": "Conecta ao servidor DashyLife em DASHYLIFE_URL. Requer uma chave MCP gerada nas Configurações e um cliente MCP com Node.js na rede do homelab.",
-    "shortDescription": "Tarefas e jogos pessoais"
+    "shortDescription": "Tarefas, rotina e jogos pessoais"
   },
   "name": "dashylife",
   "version": "0.2.0",
-  "description": "Acesse e gerencie tarefas e jogos do DashyLife hospedado na sua rede local.",
+  "description": "Acesse e gerencie tarefas, rotina e jogos do DashyLife hospedado na sua rede local.",
   "author": { "name": "DashyLife" },
   "keywords": [],
   "mcpServers": "./.mcp.json"

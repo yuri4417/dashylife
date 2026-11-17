@@ -207,10 +207,11 @@ interface ServicesPanelProps {
   saving: boolean;
   onToggleGamelist: (enabled: boolean) => void;
   onToggleTodolist: (enabled: boolean) => void;
+  onToggleRoutine: (enabled: boolean) => void;
 }
 
 export function ServicesPanel({ settings }: { settings: AppSettings }) {
-  if (!settings.todolist.enabled && !settings.gamelist.enabled) {
+  if (!settings.todolist.enabled && !settings.gamelist.enabled && !settings.routine.enabled) {
     return (
       <Card>
         <div className="mb-3 flex items-center gap-3">
@@ -233,7 +234,7 @@ export function ServicesPanel({ settings }: { settings: AppSettings }) {
   return null;
 }
 
-export function ServicesSettingsCard({ settings, saving, onToggleGamelist, onToggleTodolist }: ServicesPanelProps) {
+export function ServicesSettingsCard({ settings, saving, onToggleGamelist, onToggleTodolist, onToggleRoutine }: ServicesPanelProps) {
   return (
     <Card className="space-y-5">
       <div className="flex items-center gap-3">
@@ -254,6 +255,10 @@ export function ServicesSettingsCard({ settings, saving, onToggleGamelist, onTog
       <label className="flex cursor-pointer items-center gap-3">
         <Toggle checked={settings.todolist.enabled} disabled={saving} onChange={onToggleTodolist} />
         <span className={`settings-module-label text-sm font-medium ${settings.todolist.enabled ? 'is-enabled' : 'is-disabled'}`}>Tarefas</span>
+      </label>
+      <label className="flex cursor-pointer items-center gap-3">
+        <Toggle checked={settings.routine.enabled} disabled={saving} onChange={onToggleRoutine} />
+        <span className={`settings-module-label text-sm font-medium ${settings.routine.enabled ? 'is-enabled' : 'is-disabled'}`}>Rotina</span>
       </label>
     </Card>
   );

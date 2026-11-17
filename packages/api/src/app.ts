@@ -13,9 +13,16 @@ import {
 } from './db.js';
 import { TodoRepository } from './repositories/todo.repository.js';
 import { GameRepository } from './repositories/game.repository.js';
-import type { AppSettings, GameListSettings, GameStatus, Repetition, TodoListSettings, UpdateTodoInput } from '@dashylife/shared';
+import { RoutineRepository } from './repositories/routine.repository.js';
+import { ApiError } from './validation.js';
+import type { AppSettings, CreateTodoInput, GameListSettings, GameStatus, TodoListSettings, UpdateTodoInput } from '@dashylife/shared';
 
 export const app = Fastify();
+
+app.setErrorHandler((error, _request, reply) => {
+  if (error instanceof ApiError) return reply.code(error.statusCode).send({ error: error.message });
+  reply.send(error);
+});
 
 const adminKey = process.env.DASHYLIFE_ADMIN_KEY?.trim() || undefined;
 
@@ -63,6 +70,7 @@ initDatabase();
 
 const todoRepo = new TodoRepository();
 const gameRepo = new GameRepository();
+const routineRepo = new RoutineRepository();
 
 class McpRequestError extends Error {
   constructor(public readonly statusCode: number, message: string) {
@@ -83,7 +91,7 @@ function executeMcpTool(tool: string, rawArgs: unknown): unknown {
       return todoRepo.findAll();
     case 'create_todo':
       if (typeof args.title !== 'string' || !args.title.trim()) throw new McpRequestError(400, 'A non-empty title is required.');
-      return todoRepo.create(args as { title: string; description?: string; dueDate?: string; repetition?: Repetition });
+      return todoRepo.create(args as unknown as CreateTodoInput);
     case 'update_todo': {
       const id = requireId(args.id);
       const { id: _id, ...update } = args;
@@ -99,6 +107,26 @@ function executeMcpTool(tool: string, rawArgs: unknown): unknown {
       if (!todoRepo.delete(id)) throw new McpRequestError(404, 'Todo not found.');
       return { deleted: id };
     }
+    case 'list_routine_categories':
+      return routineRepo.listCategories();
+    case 'create_routine_category':
+      return routineRepo.createCategory(args);
+    case 'update_routine_category': {
+      const { id: rawId, ...update } = args;
+      return routineRepo.updateCategory(requireId(rawId), update);
+    }
+    case 'delete_routine_category':
+      return routineRepo.deleteCategory(requireId(args.id));
+    case 'list_routine_activities':
+      return routineRepo.listActivities(args.start, args.end);
+    case 'create_routine_activity':
+      return routineRepo.createActivity(args);
+    case 'update_routine_activity': {
+      const { id: rawId, ...update } = args;
+      return routineRepo.updateActivity(requireId(rawId), update);
+    }
+    case 'delete_routine_activity':
+      return routineRepo.deleteActivity(requireId(args.id), args.scope, args.date);
     case 'list_games':
       return gameRepo.findAll();
     case 'create_game': {
@@ -183,7 +211,7 @@ app.post('/api/mcp/tools/:tool', async (request, reply) => {
     }
     return result;
   } catch (caught) {
-    status = caught instanceof McpRequestError ? caught.statusCode : 500;
+    status = caught instanceof McpRequestError || caught instanceof ApiError ? caught.statusCode : 500;
     error = caught instanceof Error ? `${caught.name}: ${caught.message}`.slice(0, 500) : 'Unknown error';
     try {
       addMcpActionLog({ createdAt: new Date().toISOString(), tool, status, durationMs: Math.round(performance.now() - startedAt), error });
@@ -199,11 +227,13 @@ app.get('/api/todos', async () => {
 });
 
 app.post('/api/todos', async (request, reply) => {
-  const body = request.body as { title: string; description?: string; dueDate?: string; repetition?: Repetition };
+  const body = request.body as CreateTodoInput;
   const newTodo = todoRepo.create({
     title: body.title,
     description: body.description,
     dueDate: body.dueDate,
+    startTime: body.startTime,
+    endTime: body.endTime,
     repetition: body.repetition,
   });
   reply.code(201).send(newTodo);
@@ -314,12 +344,17 @@ function readGameListSettings(): GameListSettings {
 }
 
 function readAppSettings(): AppSettings {
-  return { gamelist: readGameListSettings(), todolist: getSetting<TodoListSettings>('todolist-settings') ?? { enabled: true } };
+  return {
+    gamelist: readGameListSettings(),
+    todolist: getSetting<TodoListSettings>('todolist-settings') ?? { enabled: true },
+    routine: getSetting<TodoListSettings>('routine-settings') ?? { enabled: true },
+  };
 }
 
-const saveAppSettings = db.transaction(({ gamelist, todolist }: Partial<AppSettings>) => {
+const saveAppSettings = db.transaction(({ gamelist, todolist, routine }: Partial<AppSettings>) => {
   if (gamelist) upsertSetting('gamelist-settings', gamelist);
   if (todolist) upsertSetting('todolist-settings', todolist);
+  if (routine) upsertSetting('routine-settings', routine);
   return readAppSettings();
 });
 
@@ -335,10 +370,42 @@ app.put('/api/settings', async (request, reply) => {
 app.get('/api/app-settings', async () => readAppSettings());
 
 app.patch<{ Body: Partial<AppSettings> }>('/api/app-settings', async ({ body }, reply) => {
-  if (!body || (body.gamelist === undefined && body.todolist === undefined)
+  if (!body || (body.gamelist === undefined && body.todolist === undefined && body.routine === undefined)
     || (body.gamelist !== undefined && !isGameListSettings(body.gamelist))
-    || (body.todolist !== undefined && !isTodoListSettings(body.todolist))) {
+    || (body.todolist !== undefined && !isTodoListSettings(body.todolist))
+    || (body.routine !== undefined && !isTodoListSettings(body.routine))) {
     return reply.code(400).send({ error: 'Configuração de módulo inválida.' });
   }
   return saveAppSettings(body);
 });
+
+
+app.get('/api/routine/categories', async () => routineRepo.listCategories());
+
+app.post('/api/routine/categories', async (request, reply) => {
+  return reply.code(201).send(routineRepo.createCategory(request.body));
+});
+
+app.put<{ Params: { id: string } }>('/api/routine/categories/:id', async ({ params, body }) => {
+  return routineRepo.updateCategory(params.id, body);
+});
+
+app.delete<{ Params: { id: string } }>('/api/routine/categories/:id', async ({ params }) => {
+  return routineRepo.deleteCategory(params.id);
+});
+
+app.get<{ Querystring: { start?: string; end?: string } }>('/api/routine/activities', async ({ query }) => {
+  return routineRepo.listActivities(query.start, query.end);
+});
+
+app.post('/api/routine/activities', async (request, reply) => {
+  return reply.code(201).send(routineRepo.createActivity(request.body));
+});
+
+app.put<{ Params: { id: string } }>('/api/routine/activities/:id', async ({ params, body }) => {
+  return routineRepo.updateActivity(params.id, body);
+});
+
+app.delete<{ Params: { id: string }; Querystring: { scope?: string; date?: string } }>(
+  '/api/routine/activities/:id', async ({ params, query }) => routineRepo.deleteActivity(params.id, query.scope, query.date),
+);

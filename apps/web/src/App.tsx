@@ -1,5 +1,6 @@
 import { useRef, useState, type CSSProperties } from 'react';
-import { ClipboardList, Gamepad2, Home, Settings } from 'lucide-react';
+import { CalendarDays, ClipboardList, Gamepad2, Home, Settings } from 'lucide-react';
+import { Routine } from './components/routine/Routine';
 import { GameList } from './components/GameList';
 import { TodoList } from './components/TodoList';
 import { Dashboard } from './components/home/Dashboard';
@@ -44,15 +45,17 @@ function App() {
     load: loadSettings,
     updateGamelistSettings,
     updateTodolistEnabled,
+    updateRoutineEnabled,
     togglePlatformVisibility,
     removePlatform,
     addPlatform,
   } = useAppSettings();
 
   const activeSection = (selectedSection === 'todo' && !settings?.todolist.enabled)
+    || (selectedSection === 'routine' && !settings?.routine.enabled)
     || (selectedSection === 'gamelist' && !settings?.gamelist.enabled) ? 'home' : selectedSection;
 
-  const todos = useCollection(fetchTodos, settings?.todolist.enabled === true, 'Não foi possível carregar as tarefas.');
+  const todos = useCollection(fetchTodos, (settings?.todolist.enabled === true || settings?.routine.enabled === true), 'Não foi possível carregar as tarefas.');
   const games = useCollection(fetchGames, settings?.gamelist.enabled === true, 'Não foi possível carregar os jogos.');
 
   const {
@@ -85,6 +88,7 @@ function App() {
     { id: 'home', label: 'Home', Icon: Home },
     ...(settings?.todolist.enabled ? [{ id: 'todo' as SectionType, label: 'Tarefas', Icon: ClipboardList }] : []),
     ...(settings?.gamelist.enabled ? [{ id: 'gamelist' as SectionType, label: 'GameList', Icon: Gamepad2 }] : []),
+    ...(settings?.routine.enabled ? [{ id: 'routine' as SectionType, label: 'Rotina', Icon: CalendarDays }] : []),
     { id: 'settings', label: 'Configurações', Icon: Settings },
   ];
 
@@ -107,6 +111,7 @@ function App() {
             <Dashboard settings={settings} settingsError={settingsError} loadSettings={loadSettings} todos={todos} games={games} onNavigate={handleSectionChange} />
           )}
 
+          {activeSection === 'routine' && settings?.routine.enabled && <Routine collection={todos} />}
           {activeSection === 'todo' && settings?.todolist.enabled && <TodoList collection={todos} />}
           {activeSection === 'gamelist' && settings?.gamelist.enabled && <GameList collection={games} settings={settings.gamelist} />}
 
@@ -134,6 +139,7 @@ function App() {
                       saving={savingSettings}
                       onToggleGamelist={(enabled) => void updateGamelistSettings((prev) => ({ ...prev, enabled }))}
                       onToggleTodolist={updateTodolistEnabled}
+                      onToggleRoutine={updateRoutineEnabled}
                     />
 
                     {settings.gamelist.enabled && (

@@ -7,6 +7,7 @@ import {
   deleteTodo as dbDeleteTodo,
   db,
 } from '../db.js';
+import { validateTimeRange } from '../validation.js';
 
 function calculateNextDueDate(dueDate: string, repetition: Repetition): string {
   const current = new Date(dueDate);
@@ -46,6 +47,8 @@ const updateCompletion = db.transaction((id: string, { completed, ...changes }: 
     description: updated.description,
     completed: false,
     dueDate: calculateNextDueDate(updated.dueDate, updated.repetition),
+    startTime: updated.startTime,
+    endTime: updated.endTime,
     repetition: updated.repetition,
     createdAt: now,
     updatedAt: now,
@@ -59,12 +62,15 @@ export class TodoRepository {
   }
 
   create(input: CreateTodoInput): Todo {
+    validateTimeRange(input.startTime, input.endTime);
     const now = new Date().toISOString();
     const todo: Omit<Todo, 'id'> = {
       title: input.title,
       description: input.description,
       completed: false,
       dueDate: input.dueDate,
+      startTime: input.startTime ?? undefined,
+      endTime: input.endTime ?? undefined,
       repetition: input.repetition,
       createdAt: now,
       updatedAt: now,
@@ -73,6 +79,10 @@ export class TodoRepository {
   }
 
   update(id: string, input: TodoUpdate): Todo | TodoCompletionResult | undefined {
+    const current = getTodoById(id);
+    if (!current) return undefined;
+    validateTimeRange(input.startTime === undefined ? current.startTime : input.startTime,
+      input.endTime === undefined ? current.endTime : input.endTime);
     return input.completed === undefined ? dbUpdateTodo(id, input) : updateCompletion(id, input);
   }
 

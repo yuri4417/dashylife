@@ -48,6 +48,8 @@ export function useAppSettings() {
     void persist({ todolist: { enabled } });
   };
 
+  const updateRoutineEnabled = (enabled: boolean) => { void persist({ routine: { enabled } }); };
+
   const togglePlatformVisibility = (name: string) => {
     void updateGamelistSettings((prev) => ({
       ...prev,
@@ -81,6 +83,7 @@ export function useAppSettings() {
     load,
     updateGamelistSettings,
     updateTodolistEnabled,
+    updateRoutineEnabled,
     togglePlatformVisibility,
     removePlatform,
     addPlatform,

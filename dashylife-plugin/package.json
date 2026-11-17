@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": { "node": ">=20" },
-  "scripts": { "start": "node server/index.js", "test:protocol": "node server/test-client.js" },
+  "scripts": { "start": "node server/index.js", "test:protocol": "node server/test-client.js", "test:integration": "node server/test-integration.js" },
   "dependencies": {
     "@modelcontextprotocol/server": "2.4.0",
     "zod": "4.4.3"

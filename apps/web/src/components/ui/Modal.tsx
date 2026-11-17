@@ -24,6 +24,8 @@ export function Modal({ title, onClose, children, footer, maxWidth = 'max-w-md',
               <h3 className="font-display text-lg font-semibold tracking-tight text-primary">{title}</h3>
             </div>
             <button
+              type="button"
+              aria-label="Fechar"
               onClick={onClose}
               className="flex h-8 w-8 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-surface-active hover:text-primary"
             >

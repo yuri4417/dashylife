@@ -28,11 +28,41 @@ db.exec(`
     description TEXT,
     completed INTEGER NOT NULL DEFAULT 0,
     due_date TEXT,
+    start_time TEXT,
+    end_time TEXT,
     repetition_type TEXT,
     repetition_interval INTEGER,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS routine_categories (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    color TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS routine_activities (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT,
+    category_id TEXT REFERENCES routine_categories(id) ON DELETE SET NULL,
+    start_date TEXT NOT NULL,
+    start_time TEXT,
+    end_time TEXT,
+    recurrence TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS routine_exclusions (
+    activity_id TEXT NOT NULL REFERENCES routine_activities(id) ON DELETE CASCADE,
+    occurrence_date TEXT NOT NULL,
+    PRIMARY KEY (activity_id, occurrence_date)
+  );
+  CREATE INDEX IF NOT EXISTS routine_activity_dates ON routine_activities(start_date);
 `);
 
 db.exec(`
@@ -87,11 +117,10 @@ export function initDatabase() {
 
   const columns = db.prepare("PRAGMA table_info(todos)").all() as { cid: number; name: string }[];
   const colNames = columns.map((c) => c.name);
-  if (!colNames.includes('repetition_type')) {
-    db.exec('ALTER TABLE todos ADD COLUMN repetition_type TEXT');
-    db.exec('ALTER TABLE todos ADD COLUMN repetition_interval INTEGER');
-    console.log('Migrated: added repetition columns');
-  }
+  if (!colNames.includes('repetition_type')) db.exec('ALTER TABLE todos ADD COLUMN repetition_type TEXT');
+  if (!colNames.includes('repetition_interval')) db.exec('ALTER TABLE todos ADD COLUMN repetition_interval INTEGER');
+  if (!colNames.includes('start_time')) db.exec('ALTER TABLE todos ADD COLUMN start_time TEXT');
+  if (!colNames.includes('end_time')) db.exec('ALTER TABLE todos ADD COLUMN end_time TEXT');
 }
 
 export function getAllTodos(): Todo[] {
@@ -102,6 +131,8 @@ export function getAllTodos(): Todo[] {
     description: string | null;
     completed: number;
     due_date: string | null;
+    start_time: string | null;
+    end_time: string | null;
     repetition_type: string | null;
     repetition_interval: number | null;
     created_at: string;
@@ -113,6 +144,8 @@ export function getAllTodos(): Todo[] {
     description: row.description || undefined,
     completed: row.completed === 1,
     dueDate: row.due_date || undefined,
+    startTime: row.start_time || undefined,
+    endTime: row.end_time || undefined,
     repetition: row.repetition_type && row.repetition_interval
       ? { type: row.repetition_type as 'hours' | 'days' | 'weeks', interval: row.repetition_interval }
       : undefined,
@@ -129,6 +162,8 @@ export function getTodoById(id: string): Todo | undefined {
     description: string | null;
     completed: number;
     due_date: string | null;
+    start_time: string | null;
+    end_time: string | null;
     repetition_type: string | null;
     repetition_interval: number | null;
     created_at: string;
@@ -143,6 +178,8 @@ export function getTodoById(id: string): Todo | undefined {
     description: row.description || undefined,
     completed: row.completed === 1,
     dueDate: row.due_date || undefined,
+    startTime: row.start_time || undefined,
+    endTime: row.end_time || undefined,
     repetition: row.repetition_type && row.repetition_interval
       ? { type: row.repetition_type as 'hours' | 'days' | 'weeks', interval: row.repetition_interval }
       : undefined,
@@ -155,8 +192,8 @@ export function createTodo(todo: Omit<Todo, 'id'>): Todo {
   const now = new Date().toISOString();
   const id = crypto.randomUUID();
   const stmt = db.prepare(
-    `INSERT INTO todos (id, title, description, completed, due_date, repetition_type, repetition_interval, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO todos (id, title, description, completed, due_date, start_time, end_time, repetition_type, repetition_interval, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   stmt.run(
     id,
@@ -164,6 +201,8 @@ export function createTodo(todo: Omit<Todo, 'id'>): Todo {
     todo.description || null,
     todo.completed ? 1 : 0,
     todo.dueDate || null,
+    todo.startTime || null,
+    todo.endTime || null,
     todo.repetition?.type || null,
     todo.repetition?.interval || null,
     todo.createdAt || now,
@@ -172,7 +211,7 @@ export function createTodo(todo: Omit<Todo, 'id'>): Todo {
   return { ...todo, id, createdAt: todo.createdAt || now, updatedAt: todo.updatedAt || now };
 }
 
-export function updateTodo(id: string, updates: Partial<Pick<Todo, 'title' | 'description' | 'completed' | 'dueDate' | 'repetition'>>): Todo | undefined {
+export function updateTodo(id: string, updates: Partial<Pick<Todo, 'title' | 'description' | 'completed' | 'dueDate' | 'repetition'>> & { startTime?: string | null; endTime?: string | null }): Todo | undefined {
   const existing = getTodoById(id);
   if (!existing) return undefined;
 
@@ -194,6 +233,14 @@ export function updateTodo(id: string, updates: Partial<Pick<Todo, 'title' | 'de
   if (updates.dueDate !== undefined) {
     setFields.push('due_date = ?');
     values.push(updates.dueDate);
+  }
+  if (updates.startTime !== undefined) {
+    setFields.push('start_time = ?');
+    values.push(updates.startTime);
+  }
+  if (updates.endTime !== undefined) {
+    setFields.push('end_time = ?');
+    values.push(updates.endTime);
   }
   if (updates.repetition !== undefined) {
     setFields.push('repetition_type = ?');

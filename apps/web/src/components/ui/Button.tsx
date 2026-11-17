@@ -20,7 +20,7 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
 
 export function Button({ variant = 'primary', className = '', children, ...rest }: ButtonProps) {
   return (
-    <button className={`${VARIANT_CLASSES[variant]} ${className}`} {...rest}>
+    <button className={`rounded-lg ${VARIANT_CLASSES[variant]} ${className}`} {...rest}>
       {children}
     </button>
   );
@@ -34,7 +34,7 @@ interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function ActionButton({ children, fullWidthOnMobile = true, className = '', ...rest }: ActionButtonProps) {
   return (
     <button
-      className={`flex items-center justify-center gap-2 bg-action px-5 py-2.5 text-sm font-medium text-action-text transition-colors hover:brightness-90 ${fullWidthOnMobile ? 'w-full sm:w-auto' : ''} ${className}`}
+      className={`flex items-center justify-center gap-2 rounded-lg bg-action px-5 py-2.5 text-sm font-medium text-action-text transition-colors hover:brightness-90 ${fullWidthOnMobile ? 'w-full sm:w-auto' : ''} ${className}`}
       {...rest}
     >
       {children}

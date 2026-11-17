@@ -61,7 +61,7 @@ export async function fetchTodos(): Promise<Todo[]> {
   return res.json();
 }
 
-export async function createTodo(input: { title: string; description?: string; dueDate?: string; repetition?: Repetition }): Promise<Todo> {
+export async function createTodo(input: { title: string; description?: string; dueDate?: string; repetition?: Repetition; startTime?: string | null; endTime?: string | null }): Promise<Todo> {
   const res = await apiFetch('/todos', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

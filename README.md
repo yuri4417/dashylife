@@ -2,7 +2,7 @@
 
 > **Personal Life Management System**
 
-DashyLife is a personal life management application designed to unify different aspects of daily life into a single, cohesive workspace. From managing tasks and tracking games to organizing health and finances, DashyLife brings order to the chaos of everyday life.
+DashyLife is a personal life management application designed to unify different aspects of daily life into a single, cohesive workspace. Manage tasks, plan recurring activities, and track games in one place.
 
 ---
 
@@ -33,27 +33,33 @@ During development, the following AI models were utilized:
 
 ## Current Features
 
-### To-Do List
+### Tasks
 
-Task management with support for:
+- Create, edit, complete, and delete tasks with optional descriptions and due dates.
+- Add optional start and end times; tasks without times are all-day events.
+- Repeat tasks at intervals of hours, days, or weeks. Completing a recurring task creates its next occurrence.
+- View dated tasks alongside activities in the Routine calendar.
 
-- Task repetition (daily, weekly, custom intervals)
-- Due dates and priority levels
-- Dynamic home dashboard showing tasks at a glance
+### Routine
+
+- Switch between daily, weekly (the default), and monthly calendar views; navigate directly to a date.
+- Create, edit, and delete activities without adding them to the Tasks list. Activities may be one-off or recur daily, weekly, or monthly at a chosen interval, with an optional end date.
+- Create and manage color-coded categories for activities.
+- Open a day to see all-day items above a timeline, with timed events sized by duration. The current-time indicator appears only on today in the daily and weekly views.
+- Click an event or use its context menu to edit or delete it. When deleting a recurring activity, choose one occurrence or that occurrence and all future ones.
+- Use the calendar and form controls on mobile, including horizontal scrolling for week and month views.
+
+Routine data and module settings are stored in SQLite. Recurring activities are expanded for the requested date range (up to five years); a monthly activity on a date absent from a month skips that month.
 
 ### GameList
 
-Personal game library manager featuring:
-
-- Custom platform support
-- Status tracking (playing, completed, backlog, etc.)
-- Filtering and search
-- JSON import/export functionality
+- Manage a personal game library with custom platforms, statuses, tags, filtering, and search.
+- Import games from JSON, with per-item results and retry support.
 
 ### Module Management
 
-- Dynamically toggle individual services on/off
-- Lightweight modular architecture — only load what you need
+- Enable or disable Tasks, Routine, and GameList independently in **Configurações → Módulos**.
+- The Routine calendar can show dated tasks even when the Tasks module is hidden.
 
 ---
 
@@ -178,16 +184,20 @@ docker compose down
 
 ## MCP and AI clients
 
-DashyLife includes an MCP server that lets a compatible AI client manage tasks
-and games. The server uses the official MCP TypeScript SDK and runs as a local
+DashyLife includes an MCP server that lets a compatible AI client manage tasks,
+routine activities and categories, and games. The server uses the official MCP TypeScript SDK and runs as a local
 Node.js process over `stdio`. It calls the DashyLife API over HTTP. The MCP can
 be used with ChatGPT or another MCP host, including a host using a local model;
 the host must be able to start the process and reach the DashyLife API.
 
-The current tools are `list_todos`, `create_todo`, `update_todo`, `delete_todo`,
-`list_games`, `create_game`, `update_game`, and `delete_game`. New application
-features need corresponding MCP tools and API operations before an AI client
-can use them.
+The server exposes 16 tools:
+
+- Tasks: `list_todos`, `create_todo`, `update_todo`, `delete_todo`. Creation and updates support optional `startTime` and `endTime` in `HH:mm` format; both must be supplied together and the end must be later than the start.
+- Routine categories: `list_routine_categories`, `create_routine_category`, `update_routine_category`, `delete_routine_category`. Deleting a category leaves its activities uncategorized.
+- Routine activities: `list_routine_activities`, `create_routine_activity`, `update_routine_activity`, `delete_routine_activity`. Listing requires a start and end date; updates affect the series, and deletion supports `occurrence`, `future`, or `series` scope.
+- Games: `list_games`, `create_game`, `update_game`, `delete_game`.
+
+See [the plugin README](dashylife-plugin/README.md) for setup, parameters, and tests.
 
 ### Activation and keys
 

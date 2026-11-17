@@ -9,6 +9,8 @@ export interface TodoModalFormData {
   title: string;
   description: string;
   dueDate: string;
+  startTime: string;
+  endTime: string;
   repetitionEnabled: boolean;
   repetitionType: 'hours' | 'days' | 'weeks';
   repetitionInterval: number;
@@ -18,6 +20,8 @@ const EMPTY_FORM: TodoModalFormData = {
   title: '',
   description: '',
   dueDate: '',
+  startTime: '',
+  endTime: '',
   repetitionEnabled: false,
   repetitionType: 'days',
   repetitionInterval: 1,
@@ -28,6 +32,8 @@ function toFormData(todo: Todo): TodoModalFormData {
     title: todo.title,
     description: todo.description || '',
     dueDate: todo.dueDate || '',
+    startTime: todo.startTime || '',
+    endTime: todo.endTime || '',
     repetitionEnabled: !!todo.repetition,
     repetitionType: todo.repetition?.type || 'days',
     repetitionInterval: todo.repetition?.interval || 1,
@@ -87,6 +93,17 @@ export function useTodos({ items: todos, loading, error, load: loadTodos, update
       return;
     }
 
+    if (!!formData.startTime !== !!formData.endTime || (formData.startTime && formData.endTime <= formData.startTime)) {
+      setModalError('Informe horários de início e fim válidos.');
+      setErrorField('startTime');
+      return;
+    }
+    if (formData.startTime && !formData.dueDate) {
+      setModalError('Informe uma data para a tarefa com horário.');
+      setErrorField('startTime');
+      return;
+    }
+
     try {
       const repetition: Repetition | undefined = formData.repetitionEnabled
         ? { type: formData.repetitionType, interval: Math.max(1, Math.floor(Number(formData.repetitionInterval) || 1)) }
@@ -96,6 +113,8 @@ export function useTodos({ items: todos, loading, error, load: loadTodos, update
         description: formData.description || undefined,
         dueDate: formData.dueDate || undefined,
         repetition,
+        startTime: formData.startTime || null,
+        endTime: formData.endTime || null,
       };
 
       if (isEditing && editingId) {
